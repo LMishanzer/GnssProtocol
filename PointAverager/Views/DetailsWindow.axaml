@@ -1,0 +1,90 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="400"
+        x:Class="PointAverager.Views.DetailsWindow"
+        Title="Details">
+    <ScrollViewer>
+        <StackPanel>
+            <TextBlock Text="Hodnoty pro protokol:" Margin="20" />
+
+            <TextBlock Text="GNSS Senzor" Margin="20 20 20 0" />
+            <TextBox x:Name="Sensor" Text="GNSS Senzor" Margin="20 20 20 0" />
+
+            <TextBlock Text="Software pro transformaci" Margin="20 20 20 0" />
+            <TextBox x:Name="TransSoft" Text="Software pro transformaci" Margin="20 20 20 0" />
+
+            <TextBlock Text="Polní software" Margin="20 20 20 0" />
+            <TextBox x:Name="PolSoft" Text="Polní software" Margin="20 20 20 0" />
+
+            <TextBlock Text="Projekce" Margin="20 20 20 0" />
+            <TextBox x:Name="Projection" Text="Projekce" Margin="20 20 20 0" />
+
+            <TextBlock Text="Model geoidu" Margin="20 20 20 0" />
+            <TextBox x:Name="GeoModel" Text="Model geoidu" Margin="20 20 20 0" />
+
+            <TextBlock Text="Realizace od" Margin="20 20 20 0" />
+            <TextBox x:Name="RealizationFrom" Text="Realizace od" Margin="20 20 20 0" />
+
+            <TextBlock Text="Lokalita" Margin="20 20 20 0" />
+            <TextBox x:Name="Lokalita" Text="Lokalita" Margin="20 20 20 0" />
+
+            <TextBlock Text="Zhotovitel" Margin="20 20 20 0" />
+            <TextBox x:Name="Zhotovitel" Text="Zhotovitel" Margin="20 20 20 0" />
+
+            <TextBlock Text="Zpracoval" Margin="20 20 20 0" />
+            <TextBox x:Name="Zpracoval" Text="Zpracoval" Margin="20 20 20 0" />
+
+            <TextBlock Text="Přijímače" Margin="20 20 20 0" />
+            <TextBox x:Name="Prijemace" Text="Přijímače" Margin="20 20 20 0" />
+
+            <TextBlock Text="Výrobce" Margin="20 20 20 0" />
+            <TextBox x:Name="Vyrobce" Text="Výrobce" Margin="20 20 20 0" />
+
+            <TextBlock Text="Typ" Margin="20 20 20 0" />
+            <TextBox x:Name="Typ" Text="Typ" Margin="20 20 20 0" />
+
+            <TextBlock Text="Číslo" Margin="20 20 20 0" />
+            <TextBox x:Name="Cislo" Text="Číslo" Margin="20 20 20 0" />
+
+            <TextBlock Text="Antény" Margin="20 20 20 0" />
+            <TextBox x:Name="Anteny" Text="Antény" Margin="20 20 20 0" />
+
+            <TextBlock Text="Přístupový bod" Margin="20 20 20 0" />
+            <TextBox x:Name="PristupovyBod" Text="Přístupový bod" Margin="20 20 20 0" />
+
+            <TextBlock Text="Interval záznamu" Margin="20 20 20 0" />
+            <TextBox x:Name="IntervalZaznamu" Text="Interval záznamu" Margin="20 20 20 0" />
+
+            <TextBlock Text="Elevační maska" Margin="20 20 20 0" />
+            <TextBox x:Name="ElevacniMaska" Text="Elevační maska" Margin="20 20 20 0" />
+
+            <TextBlock Text="Výška antény vztažená k" Margin="20 20 20 0" />
+            <TextBox x:Name="VyskaAnteny" Text="Výška antény vztažená k" Margin="20 20 20 0" />
+
+            <TextBlock Text="Nejmenší počet zaměření bodu:" Margin="20 20 20 0" />
+            <TextBox x:Name="PocetZameneniBodu" Text="Nejmenší počet zaměření bodu:" Margin="20 20 20 0" />
+
+            <TextBlock Text="Zpracovatelský program (geocentrické souřadnice)" Margin="20 20 20 0" />
+            <TextBox x:Name="ZpracovatelskyProgram" Text="Zpracovatelský program (geocentrické souřadnice)" Margin="20 20 20 0" />
+
+            <TextBlock Text="Souřadnice nepřipojeny/připojeny do" Margin="20 20 20 0" />
+            <TextBox x:Name="SouradniceNepripojeny" Text="Souřadnice nepřipojeny/připojeny do" Margin="20 20 20 0" />
+
+            <TextBlock Text="Kontrola připojení" Margin="20 20 20 0" />
+            <TextBox x:Name="KontrolaPripojeni" Text="Kontrola připojení" Margin="20 20 20 0" />
+
+            <TextBlock Text="Použit transformační postup" Margin="20 20 20 0" />
+            <TextBox x:Name="TransformacniPostup" Text="Použit transformační postup" Margin="20 20 20 0" />
+
+            <TextBlock Text="Zpracovatelský program (Transformace do S-JTSK)" Margin="20 20 20 0" />
+            <TextBox x:Name="TransformaceZpracovatelskyProgram" Text="Zpracovatelský program (Transformace do S-JTSK)" Margin="20 20 20 0" />
+            
+            <TextBlock Text="Poznamky" Margin="20 20 20 0" />
+            <TextBox x:Name="Poznamky" Text="" Margin="20 20 20 0" TextWrapping="Wrap" Height="200" AcceptsReturn="True" />
+            
+            <Button Content="OK" Width="100" Click="OnOkButtonClick" Margin="30"/>
+        </StackPanel>
+    </ScrollViewer>
+</Window>

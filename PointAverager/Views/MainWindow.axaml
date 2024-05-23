@@ -45,13 +45,13 @@
             <TextBlock Text="Přesnost (počet desetinných míst):" Margin="20 20 20 0" />
             <NumericUpDown x:Name="PrecisionInput" Value="2" Minimum="2" Maximum="3" FormatString="0" Margin="20" />
 
-            <TextBlock Text="Typ souřadnic:" Margin="20" />
+            <TextBlock Text="Typ souřadnic:" Margin="20 20 20 0" />
             <ComboBox x:Name="CoordinatesType" SelectedIndex="0" Margin="20" SelectionChanged="ChangeAccuracy">
                 <ComboBoxItem Content="Lokální" />
                 <ComboBoxItem Content="Globální" />
             </ComboBox>
 
-            <TextBlock Text="Použitá stanice nebo síť:" Margin="20" />
+            <TextBlock Text="Použitá stanice nebo síť:" Margin="20 20 20 0" />
             <ComboBox x:Name="PouzitaStanice" SelectedIndex="0" Margin="20">
                 <ComboBoxItem Content="CZEPOS" />
                 <ComboBoxItem Content="TOPNET" />
@@ -60,91 +60,18 @@
                 <ComboBoxItem Content="GEOORBIT" />
                 <ComboBoxItem Content="Vlastní základnová stanice" />
             </ComboBox>
-
-            <TextBlock Text="Hodnoty pro protokol:" Margin="20" />
-
-            <TextBlock Text="GNSS Senzor" Margin="20" />
-            <TextBox x:Name="Sensor" Text="GNSS Senzor" Margin="20" />
-
-            <TextBlock Text="Software pro transformaci" Margin="20" />
-            <TextBox x:Name="TransSoft" Text="Software pro transformaci" Margin="20" />
-
-            <TextBlock Text="Polní software" Margin="20" />
-            <TextBox x:Name="PolSoft" Text="Polní software" Margin="20" />
-
-            <TextBlock Text="Projekce" Margin="20" />
-            <TextBox x:Name="Projection" Text="Projekce" Margin="20" />
-
-            <TextBlock Text="Model geoidu" Margin="20" />
-            <TextBox x:Name="GeoModel" Text="Model geoidu" Margin="20" />
-
-            <TextBlock Text="Realizace od" Margin="20" />
-            <TextBox x:Name="RealizationFrom" Text="Realizace od" Margin="20" />
-
-            <TextBlock Text="Lokalita" Margin="20" />
-            <TextBox x:Name="Lokalita" Text="Lokalita" Margin="20" />
-
-            <TextBlock Text="Zhotovitel" Margin="20" />
-            <TextBox x:Name="Zhotovitel" Text="Zhotovitel" Margin="20" />
-
-            <TextBlock Text="Zpracoval" Margin="20" />
-            <TextBox x:Name="Zpracoval" Text="Zpracoval" Margin="20" />
-
-            <TextBlock Text="Přijímače" Margin="20" />
-            <TextBox x:Name="Prijemace" Text="Přijímače" Margin="20" />
-
-            <TextBlock Text="Výrobce" Margin="20" />
-            <TextBox x:Name="Vyrobce" Text="Výrobce" Margin="20" />
-
-            <TextBlock Text="Typ" Margin="20" />
-            <TextBox x:Name="Typ" Text="Typ" Margin="20" />
-
-            <TextBlock Text="Číslo" Margin="20" />
-            <TextBox x:Name="Cislo" Text="Číslo" Margin="20" />
-
-            <TextBlock Text="Antény" Margin="20" />
-            <TextBox x:Name="Anteny" Text="Antény" Margin="20" />
-
-            <TextBlock Text="Přístupový bod" Margin="20" />
-            <TextBox x:Name="PristupovyBod" Text="Přístupový bod" Margin="20" />
-
-            <TextBlock Text="Interval záznamu" Margin="20" />
-            <TextBox x:Name="IntervalZaznamu" Text="Interval záznamu" Margin="20" />
-
-            <TextBlock Text="Elevační maska" Margin="20" />
-            <TextBox x:Name="ElevacniMaska" Text="Elevační maska" Margin="20" />
-
-            <TextBlock Text="Výška antény vztažená k" Margin="20" />
-            <TextBox x:Name="VyskaAnteny" Text="Výška antény vztažená k" Margin="20" />
-
-            <TextBlock Text="Nejmenší počet zaměření bodu:" Margin="20" />
-            <TextBox x:Name="PocetZameneniBodu" Text="Nejmenší počet zaměření bodu:" Margin="20" />
-
-            <TextBlock Text="Zpracovatelský program (geocentrické souřadnice)" Margin="20" />
-            <TextBox x:Name="ZpracovatelskyProgram" Text="Zpracovatelský program (geocentrické souřadnice)" Margin="20" />
-
-            <TextBlock Text="Souřadnice nepřipojeny/připojeny do" Margin="20" />
-            <TextBox x:Name="SouradniceNepripojeny" Text="Souřadnice nepřipojeny/připojeny do" Margin="20" />
-
-            <TextBlock Text="Kontrola připojení" Margin="20" />
-            <TextBox x:Name="KontrolaPripojeni" Text="Kontrola připojení" Margin="20" />
-
-            <TextBlock Text="Použit transformační postup" Margin="20" />
-            <TextBox x:Name="TransformacniPostup" Text="Použit transformační postup" Margin="20" />
-
-            <TextBlock Text="Zpracovatelský program (Transformace do S-JTSK)" Margin="20" />
-            <TextBox x:Name="TransformaceZpracovatelskyProgram" Text="Zpracovatelský program (Transformace do S-JTSK)" Margin="20" />
             
-            <TextBlock Text="Poznamky" Margin="20" />
-            <TextBox x:Name="Poznamky" Text="" Margin="20" TextWrapping="Wrap" Height="200" AcceptsReturn="True" />
-            
-            <TextBlock Text="Katastralní území" Margin="20" />
+            <TextBlock Text="Katastralní území" Margin="20 20 20 0" />
             <ComboBox x:Name="KatastralniUzemi" Width="400" SelectedIndex="0" Margin="20" SelectionChanged="UzemiOnSelectionChanged"></ComboBox>
             
-            <TextBlock Text="Okres:" Margin="20" />
+            <TextBlock Text="Okres:" Margin="20 20 20 0" />
             <TextBlock x:Name="Okres" Margin="20" />
 
-            <Button Name="ProcessButton" Content="Zpracovat" Click="Process" Margin="20" />
+            <StackPanel Orientation="Horizontal">
+                <Button Name="ProcessButton" Content="Zpracovat" Click="Process" Margin="20" />
+                
+                <Button Name="OpenDetails" Content="Detaily" Click="OpenDetailsClick" Margin="20" />
+            </StackPanel>
 
             <TextBlock Name="Info" Margin="20" />
         </StackPanel>

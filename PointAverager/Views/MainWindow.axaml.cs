@@ -20,6 +20,7 @@ namespace PointAverager.Views;
 public partial class MainWindow : Window
 {
     private readonly LocalDatabase _localDatabase;
+    private Details _details = new();
     
     public MainWindow()
     {
@@ -154,37 +155,38 @@ public partial class MainWindow : Window
     {
         var state = new FormState
         {
+            TypTechnologieIndex = TypTechnologie.SelectedIndex,
             InputFile = InputPathTextBox.Text,
             OutputFile = OutputPathTextBox.Text,
             OutputDocxFile = OutputDocxPathTextBox.Text,
             Precision = (int?) PrecisionInput.Value,
             CoordinatesTypeIndex = CoordinatesType.SelectedIndex,
             PouzitaStaniceIndex = PouzitaStanice.SelectedIndex,
-            Sensor = Sensor.Text,
-            TransSoft = TransSoft.Text,
-            PolSoft = PolSoft.Text,
-            Projection = Projection.Text,
-            GeoModel = GeoModel.Text,
-            RealizationFrom = RealizationFrom.Text,
-            Lokalita = Lokalita.Text,
-            Zhotovitel = Zhotovitel.Text,
-            Zpracoval = Zpracoval.Text,
-            Prijimace = Prijemace.Text,
-            Vyrobce = Vyrobce.Text,
-            Typ = Typ.Text,
-            Cislo = Cislo.Text,
-            Anteny = Anteny.Text,
-            PristupovyBod = PristupovyBod.Text,
-            IntervalZaznamu = IntervalZaznamu.Text,
-            ElevacniMaska = ElevacniMaska.Text,
-            VyskaAnteny = VyskaAnteny.Text,
-            PocetZameneniBodu = PocetZameneniBodu.Text,
-            ZpracovatelskyProgram = ZpracovatelskyProgram.Text,
-            SouradniceNepripojeny = SouradniceNepripojeny.Text,
-            KontrolaPripojeni = KontrolaPripojeni.Text,
-            TransformacniPostup = TransformacniPostup.Text,
-            TransformaceZpracovatelskyProgram = TransformaceZpracovatelskyProgram.Text,
-            Poznamky = Poznamky.Text
+            Sensor = _details.Sensor,
+            TransSoft = _details.TransSoft,
+            PolSoft = _details.PolSoft,
+            Projection = _details.Projection,
+            GeoModel = _details.GeoModel,
+            RealizationFrom = _details.RealizationFrom,
+            Lokalita = _details.Lokalita,
+            Zhotovitel = _details.Zhotovitel,
+            Zpracoval = _details.Zpracoval,
+            Prijimace = _details.Prijemace,
+            Vyrobce = _details.Vyrobce,
+            Typ = _details.Typ,
+            Cislo = _details.Cislo,
+            Anteny = _details.Anteny,
+            PristupovyBod = _details.PristupovyBod,
+            IntervalZaznamu = _details.IntervalZaznamu,
+            ElevacniMaska = _details.ElevacniMaska,
+            VyskaAnteny = _details.VyskaAnteny,
+            PocetZameneniBodu = _details.PocetZameneniBodu,
+            ZpracovatelskyProgram = _details.ZpracovatelskyProgram,
+            SouradniceNepripojeny = _details.SouradniceNepripojeny,
+            KontrolaPripojeni = _details.KontrolaPripojeni,
+            TransformacniPostup = _details.TransformacniPostup,
+            TransformaceZpracovatelskyProgram = _details.TransformaceZpracovatelskyProgram,
+            Poznamky = _details.Poznamky
         };
         
         await File.WriteAllTextAsync(StateFileName, JsonConvert.SerializeObject(state));
@@ -200,38 +202,39 @@ public partial class MainWindow : Window
         
         if (state == null)
             return;
-        
+
+        TypTechnologie.SelectedIndex = state.TypTechnologieIndex;
         InputPathTextBox.Text = state.InputFile;
         OutputPathTextBox.Text = state.OutputFile;
         OutputDocxPathTextBox.Text = state.OutputDocxFile;
         PrecisionInput.Value = state.Precision;
         CoordinatesType.SelectedIndex = state.CoordinatesTypeIndex ?? 0;
         PouzitaStanice.SelectedIndex = state.PouzitaStaniceIndex ?? 0;
-        Sensor.Text = state.Sensor;
-        TransSoft.Text = state.TransSoft;
-        PolSoft.Text = state.PolSoft;
-        Projection.Text = state.Projection;
-        GeoModel.Text = state.GeoModel;
-        RealizationFrom.Text = state.RealizationFrom;
-        Lokalita.Text = state.Lokalita;
-        Zhotovitel.Text = state.Zhotovitel;
-        Zpracoval.Text = state.Zpracoval;
-        Prijemace.Text = state.Prijimace;
-        Vyrobce.Text = state.Vyrobce;
-        Typ.Text = state.Typ;
-        Cislo.Text = state.Cislo;
-        Anteny.Text = state.Anteny;
-        PristupovyBod.Text = state.PristupovyBod;
-        IntervalZaznamu.Text = state.IntervalZaznamu;
-        ElevacniMaska.Text = state.ElevacniMaska;
-        VyskaAnteny.Text = state.VyskaAnteny;
-        PocetZameneniBodu.Text = state.PocetZameneniBodu;
-        ZpracovatelskyProgram.Text = state.ZpracovatelskyProgram;
-        SouradniceNepripojeny.Text = state.SouradniceNepripojeny;
-        KontrolaPripojeni.Text = state.KontrolaPripojeni;
-        TransformacniPostup.Text = state.TransformacniPostup;
-        TransformaceZpracovatelskyProgram.Text = state.TransformaceZpracovatelskyProgram;
-        Poznamky.Text = state.Poznamky;
+        _details.Sensor = state.Sensor;
+        _details.TransSoft = state.TransSoft;
+        _details.PolSoft = state.PolSoft;
+        _details.Projection = state.Projection;
+        _details.GeoModel = state.GeoModel;
+        _details.RealizationFrom = state.RealizationFrom;
+        _details.Lokalita = state.Lokalita;
+        _details.Zhotovitel = state.Zhotovitel;
+        _details.Zpracoval = state.Zpracoval;
+        _details.Prijemace = state.Prijimace;
+        _details.Vyrobce = state.Vyrobce;
+        _details.Typ = state.Typ;
+        _details.Cislo = state.Cislo;
+        _details.Anteny = state.Anteny;
+        _details.PristupovyBod = state.PristupovyBod;
+        _details.IntervalZaznamu = state.IntervalZaznamu;
+        _details.ElevacniMaska = state.ElevacniMaska;
+        _details.VyskaAnteny = state.VyskaAnteny;
+        _details.PocetZameneniBodu = state.PocetZameneniBodu;
+        _details.ZpracovatelskyProgram = state.ZpracovatelskyProgram;
+        _details.SouradniceNepripojeny = state.SouradniceNepripojeny;
+        _details.KontrolaPripojeni = state.KontrolaPripojeni;
+        _details.TransformacniPostup = state.TransformacniPostup;
+        _details.TransformaceZpracovatelskyProgram = state.TransformaceZpracovatelskyProgram;
+        _details.Poznamky = state.Poznamky;
     }
 
     
@@ -247,15 +250,15 @@ public partial class MainWindow : Window
 $"""
 *Protokol GNSS měření*
 
-GNSS Senzor: {Sensor.Text}
-Software pro transformaci mezi ETRS89 a S-JTSK pomocí zpřesněné globální transformace: {TransSoft.Text}
-Polní software: {PolSoft.Text}
-Projekce: {Projection.Text}
-Model geoidu: {GeoModel.Text}
-Firma: {Zhotovitel.Text}
-Měřil: {Zpracoval.Text}
+GNSS Senzor: {_details.Sensor}
+Software pro transformaci mezi ETRS89 a S-JTSK pomocí zpřesněné globální transformace: {_details.TransSoft}
+Polní software: {_details.PolSoft}
+Projekce: {_details.Projection}
+Model geoidu: {_details.GeoModel}
+Firma: {_details.Zhotovitel}
+Měřil: {_details.Zpracoval}
 
-Pro výpočet S-JTSK souřadnic a Bpv výšek byla použitá zpřesněná globální transformace mezi ETRS89 a S-JTSK, realizace od {RealizationFrom.Text}.
+Pro výpočet S-JTSK souřadnic a Bpv výšek byla použitá zpřesněná globální transformace mezi ETRS89 a S-JTSK, realizace od {_details.RealizationFrom}.
 
 
 *Měření*
@@ -302,33 +305,33 @@ Pro výpočet S-JTSK souřadnic a Bpv výšek byla použitá zpřesněná globá
 
         var docxDict = new Dictionary<string, string>
         {
-            { "{lokalita}", Lokalita.Text ?? string.Empty },
+            { "{lokalita}", _details.Lokalita ?? string.Empty },
             { "{katastralniUzemi}", KatastralniUzemi.SelectedItem?.ToString() ?? string.Empty },
             { "{okres}", Okres.Text ?? string.Empty },
-            { "{zhotovitel}", Zhotovitel.Text ?? string.Empty },
-            { "{vypracoval}", Zpracoval.Text ?? string.Empty },
+            { "{zhotovitel}", _details.Zhotovitel ?? string.Empty },
+            { "{vypracoval}", _details.Zpracoval ?? string.Empty },
             { "{dne}", DateTime.Now.ToString("dd.MM.yyyy") },
-            { "{prijimace}", Prijemace.Text ?? string.Empty },
-            { "{vyrobce}", Vyrobce.Text ?? string.Empty },
-            { "{typ}", Typ.Text ?? string.Empty },
-            { "{cislo}", Cislo.Text ?? string.Empty },
-            { "{anteny}", Anteny.Text ?? string.Empty },
+            { "{prijimace}", _details.Prijemace ?? string.Empty },
+            { "{vyrobce}", _details.Vyrobce ?? string.Empty },
+            { "{typ}", _details.Typ ?? string.Empty },
+            { "{cislo}", _details.Cislo ?? string.Empty },
+            { "{anteny}", _details.Anteny ?? string.Empty },
             { "{zamereniDatum}", measurementTime.ToString("dd.MM.yyyy") },
             { "{metoda}", measurements.FirstOrDefault()?.Metoda ?? string.Empty },
             { "{sit}", (PouzitaStanice.SelectedItem as ComboBoxItem)?.Content as string ?? string.Empty },
-            { "{pristupovyBod}", PristupovyBod.Text ?? string.Empty },
-            { "{interval}", IntervalZaznamu.Text ?? string.Empty },
-            { "{elevacniMaska}", ElevacniMaska.Text ?? string.Empty },
-            { "{vyskaAntenyVztazena}", VyskaAnteny.Text ?? string.Empty },
+            { "{pristupovyBod}", _details.PristupovyBod ?? string.Empty },
+            { "{interval}", _details.IntervalZaznamu ?? string.Empty },
+            { "{elevacniMaska}", _details.ElevacniMaska ?? string.Empty },
+            { "{vyskaAntenyVztazena}", _details.VyskaAnteny ?? string.Empty },
             { "{minimalniDoba}", $"{minInterval.Seconds}s" },
             { "{maxPdop}", maxPdop?.ToString() ?? string.Empty },
-            { "{nejmensiPocet}", PocetZameneniBodu.Text ?? string.Empty },
-            { "{zpracovatelskyProgram}", ZpracovatelskyProgram.Text ?? string.Empty },
-            { "{souradnicePripojeny}", SouradniceNepripojeny.Text ?? string.Empty },
-            { "{kontrolaPripojeni}", KontrolaPripojeni.Text ?? string.Empty },
-            { "{transformacniPristup}", TransformacniPostup.Text ?? string.Empty },
-            { "{transformaceZpracovatelskyProgram}", TransformaceZpracovatelskyProgram.Text ?? string.Empty },
-            { "{poznamky}", Poznamky.Text ?? string.Empty }
+            { "{nejmensiPocet}", _details.PocetZameneniBodu ?? string.Empty },
+            { "{zpracovatelskyProgram}", _details.ZpracovatelskyProgram ?? string.Empty },
+            { "{souradnicePripojeny}", _details.SouradniceNepripojeny ?? string.Empty },
+            { "{kontrolaPripojeni}", _details.KontrolaPripojeni ?? string.Empty },
+            { "{transformacniPristup}", _details.TransformacniPostup ?? string.Empty },
+            { "{transformaceZpracovatelskyProgram}", _details.TransformaceZpracovatelskyProgram ?? string.Empty },
+            { "{poznamky}", _details.Poznamky ?? string.Empty }
         };
         
         const string fileName = "protokol.docx";
@@ -452,5 +455,16 @@ Pro výpočet S-JTSK souřadnic a Bpv výšek byla použitá zpřesněná globá
         
         var okres = _localDatabase.GetOkresByUzemi(item);
         Okres.Text = okres;
+    }
+
+    private async void OpenDetailsClick(object? _1, RoutedEventArgs _2)
+    {
+        var detailsDialog = new DetailsWindow(_details);
+        var details = await detailsDialog.ShowDialog<Details?>(this);
+        
+        if (details != null)
+        {
+            _details = details;
+        }
     }
 }
