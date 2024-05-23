@@ -270,16 +270,18 @@ Pro výpočet S-JTSK souřadnic a Bpv výšek byla použitá zpřesněná globá
 *Souřadnice*
 ------------------------
 {string.Join(string.Empty, new[]{"Bod č.", "Y", "X", "H(orto)", "Kód"}.Select(s => s.PadLeft(padConst)))}
+
 {string.Join(Environment.NewLine, averagedCoordinates.Select(c => 
-    $"{c.Name,padConst} {Math.Round(c.Longitude, _precision),padConst} {Math.Round(c.Latitude, _precision),padConst} " +
-    $"{Math.Round(c.Height, _precision),padConst} {c.Code,padConst}"))}
+    $"{c.Name,padConst}{Math.Round(c.Longitude, _precision),padConst}{Math.Round(c.Latitude, _precision),padConst}" +
+    $"{Math.Round(c.Height, _precision),padConst}{c.Code,padConst}"))}
 
 *Porovnání měření*
 ------------------------
 {string.Join(string.Empty, new[]{"Bod č.", "dY", "dX", "dZ", "dM", "delta čas (H:M:S)"}.Select(s => s.PadLeft(padConst)))}
+
 {string.Join(Environment.NewLine, differences.Select(c => 
-    $"{c.Name,padConst} {Math.Round(c.Longitude, _precision),padConst} {Math.Round(c.Latitude, _precision),padConst} " +
-    $"{Math.Round(c.Height, _precision),padConst} {Math.Round(c.Distance, _precision),padConst} {c.DeltaTime.ToString("g").Split('.')[0],padConst}"))}
+    $"{c.Name,padConst}{Math.Round(c.Longitude, _precision),padConst}{Math.Round(c.Latitude, _precision),padConst}" +
+    $"{Math.Round(c.Height, _precision),padConst}{Math.Round(c.Distance, _precision),padConst}{c.DeltaTime.ToString("g").Split('.')[0],padConst}"))}
     
 """;
         return protocol;
@@ -399,7 +401,7 @@ Pro výpočet S-JTSK souřadnic a Bpv výšek byla použitá zpřesněná globá
             gdop.ToString(CultureInfo.InvariantCulture),
             $"{pdopSign}{measurement.Pdop}",
             measurement.SatellitesCount.ToString(),
-            $"{measurement.Code} {measurement.Description}",
+            $"{measurement.Code} {measurement.Description}".Trim(),
             measurement.Metoda
         ];
     }

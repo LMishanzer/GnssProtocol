@@ -26,7 +26,7 @@ public class PositionsHelper
                 Longitude = coordinates.Sum(v => v.Longitude) / coordinates.Count,
                 Latitude = coordinates.Sum(v => v.Latitude) / coordinates.Count,
                 Height = coordinates.Sum(v => v.Height) / coordinates.Count,
-                Code = $"{coordinates.FirstOrDefault()?.Code} {coordinates.FirstOrDefault()?.Description}"
+                Code = $"{coordinates.FirstOrDefault()?.Code} {coordinates.FirstOrDefault()?.Description}".Trim()
             };
             resultPositions.Add(newPosition);
             

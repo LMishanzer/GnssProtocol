@@ -39,7 +39,7 @@ public class NivelCsvReader : ICsvReader
                 SolutionStatus = csvReader.GetField<string>("Status").Trim(),
                 Metoda = csvReader.GetField<string>("VRS Name").Trim(),
                 SharedSats = csvReader.GetField<int>("Shared Sats"),
-                Description = csvReader.GetField<string>("Desc").Trim()
+                Code = csvReader.GetField<string>("Desc").Trim()
             };
             measurements.Add(position);
         }
