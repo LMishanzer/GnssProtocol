@@ -7,11 +7,12 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
-using CsvHelper;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
+using GisProtocolLib;
+using GisProtocolLib.Csv;
+using GisProtocolLib.Models;
 using Newtonsoft.Json;
-using PointAverager.Models;
 using ComboBoxItem = Avalonia.Controls.ComboBoxItem;
 
 namespace PointAverager.Views;
@@ -35,12 +36,11 @@ public partial class MainWindow : Window
     {
         await _localDatabase.Init();
         
-        foreach (var okres in _localDatabase.GetOkresyList()) 
-            Okres.Items.Add(okres);
-        
         foreach (var uzemi in _localDatabase.GetAllUzemiList()) 
             KatastralniUzemi.Items.Add(uzemi);
     }
+
+    private static readonly string[] CsvPatterns = ["*.csv"];
     
     public async void OnInputButtonClick(object sender, RoutedEventArgs e)
     {
@@ -51,7 +51,7 @@ public partial class MainWindow : Window
             {
                 new("CSV Files")
                 {
-                    Patterns = new [] { "*.csv" }
+                    Patterns = CsvPatterns
                 }
             }
         });
@@ -117,42 +117,17 @@ public partial class MainWindow : Window
             var isGlobal = CoordinatesType.SelectionBoxItem?.ToString() == "Globální";
             _precision = (int?) PrecisionInput.Value ?? 2;
 
-            using var reader = new StreamReader(filePath);
-            using var csvReader = new CsvReader(reader, CultureInfo.InvariantCulture);
-
-            var measurements = new List<Measurement>();
-
-            await csvReader.ReadAsync();
-            csvReader.ReadHeader();
-            
-            const string format = "yyyy-MM-dd HH:mm:ss.f 'UTC'zzz";
-
-            while (await csvReader.ReadAsync())
+            var typTechnologie = (TypTechnologie.SelectedItem as ComboBoxItem)?.Content as string ?? string.Empty;
+            ICsvReader csvReader = typTechnologie switch
             {
-                var averagingStart = csvReader.GetField<string>("Averaging start");
-                var averagingEnd = csvReader.GetField<string>("Averaging end");
-                
-                var timeStart = DateTime.ParseExact(averagingStart, format, CultureInfo.InvariantCulture);
-                var timeEnd = DateTime.ParseExact(averagingEnd, format, CultureInfo.InvariantCulture);
-                
-                var position = new Measurement
-                {
-                    Name = csvReader.GetField<string>("Name"),
-                    Longitude = csvReader.GetField<decimal>(isGlobal ? "Longitude" : "Easting"),
-                    Latitude = csvReader.GetField<decimal>(isGlobal ? "Latitude" : "Northing"),
-                    Height = csvReader.GetField<decimal>(isGlobal ? "Ellipsoidal height" : "Elevation"),
-                    AntennaHeight = csvReader.GetField<decimal>("Antenna height"),
-                    TimeStart = timeStart,
-                    TimeEnd = timeEnd,
-                    Pdop = csvReader.GetField<decimal>("PDOP"),
-                    SolutionStatus = csvReader.GetField<string>("Solution status"),
-                    Code = csvReader.GetField<string>("Code"),
-                    Description = csvReader.GetField<string>("Description")
-                };
-                measurements.Add(position);
-            }
+                "EMLID" => new EmlidCsvReader(),
+                "NIVEL Point" => new NivelCsvReader(),
+                _ => throw new Exception("Neznámý typ technologie")
+            };
 
-            var (aggregatedPositions, differences) = AggregatePositions(measurements);
+            var measurements = await csvReader.ReadData(filePath, isGlobal);
+
+            var (aggregatedPositions, differences) = PositionsHelper.AggregatePositions(measurements);
             var textToWrite = CreateProtocol(measurements, aggregatedPositions, differences);
 
             var outputFile = OutputPathTextBox.Text ?? string.Empty;
@@ -184,7 +159,6 @@ public partial class MainWindow : Window
             OutputDocxFile = OutputDocxPathTextBox.Text,
             Precision = (int?) PrecisionInput.Value,
             CoordinatesTypeIndex = CoordinatesType.SelectedIndex,
-            MethodIndex = Metoda.SelectedIndex,
             PouzitaStaniceIndex = PouzitaStanice.SelectedIndex,
             Sensor = Sensor.Text,
             TransSoft = TransSoft.Text,
@@ -209,7 +183,8 @@ public partial class MainWindow : Window
             SouradniceNepripojeny = SouradniceNepripojeny.Text,
             KontrolaPripojeni = KontrolaPripojeni.Text,
             TransformacniPostup = TransformacniPostup.Text,
-            TransformaceZpracovatelskyProgram = TransformaceZpracovatelskyProgram.Text
+            TransformaceZpracovatelskyProgram = TransformaceZpracovatelskyProgram.Text,
+            Poznamky = Poznamky.Text
         };
         
         await File.WriteAllTextAsync(StateFileName, JsonConvert.SerializeObject(state));
@@ -231,7 +206,6 @@ public partial class MainWindow : Window
         OutputDocxPathTextBox.Text = state.OutputDocxFile;
         PrecisionInput.Value = state.Precision;
         CoordinatesType.SelectedIndex = state.CoordinatesTypeIndex ?? 0;
-        Metoda.SelectedIndex = state.MethodIndex ?? 0;
         PouzitaStanice.SelectedIndex = state.PouzitaStaniceIndex ?? 0;
         Sensor.Text = state.Sensor;
         TransSoft.Text = state.TransSoft;
@@ -257,54 +231,15 @@ public partial class MainWindow : Window
         KontrolaPripojeni.Text = state.KontrolaPripojeni;
         TransformacniPostup.Text = state.TransformacniPostup;
         TransformaceZpracovatelskyProgram.Text = state.TransformaceZpracovatelskyProgram;
+        Poznamky.Text = state.Poznamky;
     }
 
-    private static (List<Coordinates> Coordinates, List<MeasurementDifference> Differences) AggregatePositions(List<Measurement> measurements)
-    {
-        foreach (var position in measurements)
-        {
-            if (!position.Name.Contains('.'))
-                continue;
-
-            position.Name = position.Name.Split('.')[0];
-        }
-
-        var grouped = measurements.GroupBy(p => p.Name).ToDictionary(i => i.Key, i => i.ToList());
-        var resultPositions = new List<Coordinates>(); 
-        var resultDifferences = new List<MeasurementDifference>();
-
-        foreach (var (name, coordinates) in grouped)
-        {
-            var newPosition = new Coordinates
-            {
-                Name = name,
-                Longitude = coordinates.Sum(v => v.Longitude) / coordinates.Count,
-                Latitude = coordinates.Sum(v => v.Latitude) / coordinates.Count,
-                Height = coordinates.Sum(v => v.Height) / coordinates.Count,
-                Code = $"{coordinates.FirstOrDefault()?.Code} {coordinates.FirstOrDefault()?.Description}"
-            };
-            resultPositions.Add(newPosition);
-            
-            var sortedCoordinates = coordinates.OrderBy(c => c.TimeEnd).ToList();
-
-            var measurementDifference = new MeasurementDifference
-            {
-                Name = name,
-                Longitude = sortedCoordinates.First().Longitude - sortedCoordinates.Last().Longitude,
-                Latitude = sortedCoordinates.First().Latitude - sortedCoordinates.Last().Latitude,
-                Height = sortedCoordinates.First().Height - sortedCoordinates.Last().Height,
-                DeltaTime = sortedCoordinates.First().TimeEnd - sortedCoordinates.Last().TimeEnd
-            };
-            resultDifferences.Add(measurementDifference);
-        }
-
-        return (resultPositions, resultDifferences);
-    }
+    
 
     private string CreateProtocol(List<Measurement> measurements, List<Coordinates> averagedCoordinates, List<MeasurementDifference> differences)
     {
         const int padConst = 30;
-        List<string> pointsHeader = ["Bod č.", "X", "Y", "H(orto)", "Výška výtyčky", "Datum Čas (H:M:S)", "Počet epoch", "RTK řešení", "GDOP", "PDOP", "Počet satelitů", "Kód", "Síť"];
+        List<string> pointsHeader = ["Bod č.", "Y", "X", "H(orto)", "Výška výtyčky", "Datum Čas (H:M:S)", "Počet epoch", "RTK řešení", "GDOP", "PDOP", "Počet satelitů", "Kód", "Síť"];
 
         var pointsValues = measurements.Select(MeasurementSelector);
         
@@ -316,7 +251,7 @@ GNSS Senzor: {Sensor.Text}
 Software pro transformaci mezi ETRS89 a S-JTSK pomocí zpřesněné globální transformace: {TransSoft.Text}
 Polní software: {PolSoft.Text}
 Projekce: {Projection.Text}
-Model geodidu: {GeoModel.Text}
+Model geoidu: {GeoModel.Text}
 Firma: {Zhotovitel.Text}
 Měřil: {Zpracoval.Text}
 
@@ -333,15 +268,16 @@ Pro výpočet S-JTSK souřadnic a Bpv výšek byla použitá zpřesněná globá
 ------------------------
 {string.Join(string.Empty, new[]{"Bod č.", "Y", "X", "H(orto)", "Kód"}.Select(s => s.PadLeft(padConst)))}
 {string.Join(Environment.NewLine, averagedCoordinates.Select(c => 
-    $"{c.Name,padConst} {Math.Round(c.Latitude, _precision),padConst} {Math.Round(c.Longitude, _precision),padConst} " +
+    $"{c.Name,padConst} {Math.Round(c.Longitude, _precision),padConst} {Math.Round(c.Latitude, _precision),padConst} " +
     $"{Math.Round(c.Height, _precision),padConst} {c.Code,padConst}"))}
 
 *Porovnání měření*
 ------------------------
-{string.Join(string.Empty, new[]{"Bod č.", "Y", "X", "H(orto)", "delta čas (H:M:S)"}.Select(s => s.PadLeft(padConst)))}
+{string.Join(string.Empty, new[]{"Bod č.", "dY", "dX", "dZ", "dM", "delta čas (H:M:S)"}.Select(s => s.PadLeft(padConst)))}
 {string.Join(Environment.NewLine, differences.Select(c => 
-    $"{c.Name,padConst} {Math.Round(c.Latitude, _precision),padConst} {Math.Round(c.Longitude, _precision),padConst} " +
-    $"{Math.Round(c.Height, _precision),padConst} {c.DeltaTime.ToString("g").Split('.')[0].PadLeft(padConst)}"))}
+    $"{c.Name,padConst} {Math.Round(c.Longitude, _precision),padConst} {Math.Round(c.Latitude, _precision),padConst} " +
+    $"{Math.Round(c.Height, _precision),padConst} {Math.Round(c.Distance, _precision),padConst} {c.DeltaTime.ToString("g").Split('.')[0],padConst}"))}
+    
 """;
         return protocol;
     }
@@ -368,7 +304,7 @@ Pro výpočet S-JTSK souřadnic a Bpv výšek byla použitá zpřesněná globá
         {
             { "{lokalita}", Lokalita.Text ?? string.Empty },
             { "{katastralniUzemi}", KatastralniUzemi.SelectedItem?.ToString() ?? string.Empty },
-            { "{okres}", Okres.SelectedItem?.ToString() ?? string.Empty },
+            { "{okres}", Okres.Text ?? string.Empty },
             { "{zhotovitel}", Zhotovitel.Text ?? string.Empty },
             { "{vypracoval}", Zpracoval.Text ?? string.Empty },
             { "{dne}", DateTime.Now.ToString("dd.MM.yyyy") },
@@ -378,7 +314,7 @@ Pro výpočet S-JTSK souřadnic a Bpv výšek byla použitá zpřesněná globá
             { "{cislo}", Cislo.Text ?? string.Empty },
             { "{anteny}", Anteny.Text ?? string.Empty },
             { "{zamereniDatum}", measurementTime.ToString("dd.MM.yyyy") },
-            { "{metoda}", (Metoda.SelectedItem as ComboBoxItem)?.Content as string ?? string.Empty },
+            { "{metoda}", measurements.FirstOrDefault()?.Metoda ?? string.Empty },
             { "{sit}", (PouzitaStanice.SelectedItem as ComboBoxItem)?.Content as string ?? string.Empty },
             { "{pristupovyBod}", PristupovyBod.Text ?? string.Empty },
             { "{interval}", IntervalZaznamu.Text ?? string.Empty },
@@ -392,7 +328,7 @@ Pro výpočet S-JTSK souřadnic a Bpv výšek byla použitá zpřesněná globá
             { "{kontrolaPripojeni}", KontrolaPripojeni.Text ?? string.Empty },
             { "{transformacniPristup}", TransformacniPostup.Text ?? string.Empty },
             { "{transformaceZpracovatelskyProgram}", TransformaceZpracovatelskyProgram.Text ?? string.Empty },
-            { "{poznamky}", string.Empty }
+            { "{poznamky}", Poznamky.Text ?? string.Empty }
         };
         
         const string fileName = "protokol.docx";
@@ -406,13 +342,29 @@ Pro výpočet S-JTSK souřadnic a Bpv výšek byla použitá zpřesněná globá
         using var doc = WordprocessingDocument.Open(outputFileName, true);
         var mainPart = doc.MainDocumentPart;
         var body = mainPart?.Document.Body;
+        
+        if (body == null)
+            return;
 
         foreach (var (key, value) in docxDict)
         {
             foreach (var text in body.Descendants<Text>())
             {
-                if (text.Text.Contains(key)) 
-                    text.Text = text.Text.Replace(key, value);
+                if (!text.Text.Contains(key)) 
+                    continue;
+                var lines = value.Split(["\r\n", "\r", "\n"], StringSplitOptions.None);
+        
+                text.Text = "";
+
+                for (var i = 0; i < lines.Length; i++)
+                {
+                    text.InsertBeforeSelf(new Text(lines[i]));
+                    
+                    if (i < lines.Length - 1)
+                        text.InsertBeforeSelf(new Break());
+                }
+
+                text.Remove();
             }
         }
     }
@@ -430,15 +382,12 @@ Pro výpočet S-JTSK souřadnic a Bpv výšek byla použitá zpřesněná globá
         var randDecimal = (decimal) Random.Shared.Next(2, 7);
         var delta = randDecimal / 100;
         var gdop = measurement.Pdop + delta;
-
-        var rand = new Random((int) (measurement.TimeEnd.Ticks % int.MaxValue));
-        var satellites = rand.Next(13, 20);
         
         return
         [
             measurement.Name,
-            Math.Round(measurement.Latitude, _precision).ToString(CultureInfo.InvariantCulture),
             Math.Round(measurement.Longitude, _precision).ToString(CultureInfo.InvariantCulture),
+            Math.Round(measurement.Latitude, _precision).ToString(CultureInfo.InvariantCulture),
             Math.Round(measurement.Height, _precision).ToString(CultureInfo.InvariantCulture),
             measurement.AntennaHeight.ToString(CultureInfo.InvariantCulture),
             measurement.TimeEnd.ToString("s").Replace("T", ""),
@@ -446,9 +395,9 @@ Pro výpočet S-JTSK souřadnic a Bpv výšek byla použitá zpřesněná globá
             measurement.SolutionStatus,
             gdop.ToString(CultureInfo.InvariantCulture),
             $"{pdopSign}{measurement.Pdop}",
-            satellites.ToString(),
+            measurement.SatellitesCount.ToString(),
             $"{measurement.Code} {measurement.Description}",
-            (Metoda.SelectedItem as ComboBoxItem)?.Content as string ?? string.Empty
+            measurement.Metoda
         ];
     }
 
@@ -478,10 +427,10 @@ Pro výpočet S-JTSK souřadnic a Bpv výšek byla použitá zpřesněná globá
         if (sender is not TextBox textBox || !e.Data.Contains(DataFormats.FileNames)) 
             return;
         
-        var files = e.Data.GetFileNames().ToList();
+        var files = e.Data.GetFiles()?.Select(f => f.Name).ToList();
 
         // Assuming you want to set the text of the TextBox with the path of the first dropped file
-        if (files.Count > 0)
+        if (files?.Count > 0)
         {
             textBox.Text = files[0];
         }
@@ -496,89 +445,12 @@ Pro výpočet S-JTSK souřadnic a Bpv výšek byla použitá zpřesněná globá
         }
     }
 
-    private class Coordinates
-    {
-        public string Name { get; set; } = string.Empty;
-        public decimal Longitude { get; set; }
-        public decimal Latitude { get; set; }
-        public decimal Height { get; set; }
-        public string Code { get; set; } = string.Empty;
-    }
-    
-    private class Measurement
-    {
-        public string Name { get; set; } = string.Empty;
-        public decimal Longitude { get; set; }
-        public decimal Latitude { get; set; }
-        public decimal Height { get; set; }
-        public decimal AntennaHeight { get; set; }
-        public DateTime TimeStart { get; set; }
-        public DateTime TimeEnd { get; set; }
-        public string SolutionStatus { get; set; } = string.Empty;
-        public decimal Pdop { get; set; }
-        public string Code { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-    }
-    
-    private class MeasurementDifference
-    {
-        public string Name { get; set; } = string.Empty;
-        public decimal Longitude { get; set; }
-        public decimal Latitude { get; set; }
-        public decimal Height { get; set; }
-        public TimeSpan DeltaTime { get; set; }
-    }
-
-    private bool _changeUzemi = true;
-
-    private void OkresOnSelectionChanged(object? _, SelectionChangedEventArgs e)
-    {
-        _changeUzemi = false;
-        
-        var item = e.AddedItems[0] as string;
-        var uzemi = _localDatabase.GetUzemiByOkres(item);
-        
-        var list = KatastralniUzemi.Items.Select(o => o as string).ToList();
-
-        if (AreListsEqual(list!, uzemi))
-            return;
-        
-        var selected = KatastralniUzemi.SelectedItem as string;
-
-        KatastralniUzemi.SelectedItem = null;
-        KatastralniUzemi.Items.Clear();
-
-        foreach (var uzemiOne in uzemi) 
-            KatastralniUzemi.Items.Add(uzemiOne);
-
-        KatastralniUzemi.SelectedItem = selected;
-        
-        _changeUzemi = true;
-    }
-
     private void UzemiOnSelectionChanged(object? _, SelectionChangedEventArgs e)
     {
-        if (!_changeUzemi)
+        if (e.AddedItems[0] is not string item)
             return;
-        
-        var item = e.AddedItems[0] as string;
         
         var okres = _localDatabase.GetOkresByUzemi(item);
-        var okresy = _localDatabase.GetOkresyList();
-
-        var index = okresy.FindIndex(o => o == okres);
-        
-        if (index >= Okres.ItemCount || index < 0 || Okres.SelectedIndex == index)
-            return;
-
-        Okres.SelectedIndex = okresy.FindIndex(o => o == okres);
-    }
-
-    private static bool AreListsEqual(List<string> list1, List<string> list2)
-    {
-        if (list1.Count != list2.Count)
-            return false;
-
-        return !list1.Where((t, i) => t != list2[i]).Any();
+        Okres.Text = okres;
     }
 }

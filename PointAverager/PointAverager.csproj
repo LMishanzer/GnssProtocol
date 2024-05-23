@@ -21,7 +21,6 @@
         <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
         <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.0.6"/>
         <PackageReference Include="Avalonia.ReactiveUI" Version="11.0.6"/>
-        <PackageReference Include="CsvHelper" Version="31.0.2" />
         <PackageReference Include="DocumentFormat.OpenXml" Version="3.0.2" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     </ItemGroup>
@@ -34,5 +33,10 @@
       <None Include="Resources\protokol.docx">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
+    </ItemGroup>
+
+
+    <ItemGroup>
+      <ProjectReference Include="..\GisProtocolLib\GisProtocolLib.csproj" />
     </ItemGroup>
 </Project>

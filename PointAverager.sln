@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PointAverager", "PointAverager\PointAverager.csproj", "{1A0067F1-AB24-43CD-85BE-5CB82699243E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GisProtocolLib", "GisProtocolLib\GisProtocolLib.csproj", "{6C11F2EA-051B-4F98-BBEA-899C3AF75F41}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{1A0067F1-AB24-43CD-85BE-5CB82699243E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1A0067F1-AB24-43CD-85BE-5CB82699243E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1A0067F1-AB24-43CD-85BE-5CB82699243E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6C11F2EA-051B-4F98-BBEA-899C3AF75F41}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6C11F2EA-051B-4F98-BBEA-899C3AF75F41}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6C11F2EA-051B-4F98-BBEA-899C3AF75F41}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6C11F2EA-051B-4F98-BBEA-899C3AF75F41}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -1,4 +1,4 @@
-namespace PointAverager.Models;
+namespace GisProtocolLib.Models;
 
 public class FormState
 {
@@ -8,7 +8,6 @@ public class FormState
     
     public int? Precision { get; set; }
     public int? CoordinatesTypeIndex { get; set; }
-    public int? MethodIndex { get; set; }
     public int? PouzitaStaniceIndex { get; set; }
     public string? Sensor { get; set; }
     public string? TransSoft { get; set; }
@@ -34,4 +33,5 @@ public class FormState
     public string? TransformaceZpracovatelskyProgram { get; set; }
     public string? Vyrobce { get; set; }
     public string? ZpracovatelskyProgram { get; set; }
+    public string? Poznamky { get; set; }
 }
