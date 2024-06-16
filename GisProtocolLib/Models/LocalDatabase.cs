@@ -20,8 +20,11 @@ public class LocalDatabase
             }
         }
     }
-
-    public List<string> GetAllUzemiList() => _ciselnikUzemi.Keys.Order().ToList();
+    
+    public List<string> FilterUzemi(string filter) => _ciselnikUzemi.Keys
+        .Where(c => c.StartsWith(filter, StringComparison.InvariantCultureIgnoreCase))
+        .Order()
+        .ToList();
 
     public string GetOkresByUzemi(string uzemi)
     {

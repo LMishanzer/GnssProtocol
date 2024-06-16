@@ -29,24 +29,29 @@ public class EmlidCsvReader : ICsvReader
             var position = new Measurement
             {
                 Name = csvReader.GetField<string>("Name"),
-                Longitude = csvReader.GetField<decimal>(isGlobal ? "Longitude" : "Easting"),
-                Latitude = csvReader.GetField<decimal>(isGlobal ? "Latitude" : "Northing"),
-                Height = csvReader.GetField<decimal>(isGlobal ? "Ellipsoidal height" : "Elevation"),
-                AntennaHeight = csvReader.GetField<decimal>("Antenna height"),
+                Longitude = csvReader.GetField<decimal?>(isGlobal ? "Longitude" : "Easting") ?? 0,
+                Latitude = csvReader.GetField<decimal?>(isGlobal ? "Latitude" : "Northing") ?? 0,
+                Height = csvReader.GetField<decimal?>(isGlobal ? "Ellipsoidal height" : "Elevation") ?? 0,
+                AntennaHeight = csvReader.GetField<decimal?>("Antenna height") ?? 0,
                 TimeStart = timeStart,
                 TimeEnd = timeEnd,
-                Pdop = csvReader.GetField<decimal>("PDOP"),
+                Pdop = csvReader.GetField<decimal?>("PDOP") ?? 0,
                 SolutionStatus = csvReader.GetField<string>("Solution status").Trim(),
                 Code = csvReader.GetField<string>("Code").Trim(),
                 Metoda = csvReader.GetField<string>("Mount point").Trim(),
-                GpsSatellites = csvReader.GetField<int>("GPS Satellites"),
-                GlonassSatellites = csvReader.GetField<int>("GLONASS Satellites"),
-                GalileoSatellites = csvReader.GetField<int>("Galileo Satellites"),
-                BeidouSatellites = csvReader.GetField<int>("BeiDou Satellites"),
-                QzssSatellites = csvReader.GetField<int>("QZSS Satellites"),
+                GpsSatellites = csvReader.GetField<int?>("GPS Satellites") ?? 0,
+                GlonassSatellites = csvReader.GetField<int?>("GLONASS Satellites") ?? 0,
+                GalileoSatellites = csvReader.GetField<int?>("Galileo Satellites") ?? 0,
+                BeidouSatellites = csvReader.GetField<int?>("BeiDou Satellites") ?? 0,
+                QzssSatellites = csvReader.GetField<int?>("QZSS Satellites") ?? 0,
                 Description = csvReader.GetField<string>("Description").Trim()
             };
-            measurements.Add(position);
+            
+            position.Longitude = Math.Abs(position.Longitude);
+            position.Latitude = Math.Abs(position.Latitude);
+            
+            if (position.AntennaHeight != 0)
+                measurements.Add(position);
         }
 
         return measurements;

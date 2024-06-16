@@ -20,30 +20,58 @@ public class NivelCsvReader : ICsvReader
 
         while (await csvReader.ReadAsync())
         {
-            var averagingStart = csvReader.GetField<string>("StartLocal time");
-            var averagingEnd = csvReader.GetField<string>("EndLocal time");
+            var averagingStart = csvReader.GetField<string>("StartLokální čas");
+            var averagingEnd = csvReader.GetField<string>("EndLokální čas");
                 
             var timeStart = DateTime.ParseExact(averagingStart, format, CultureInfo.InvariantCulture);
             var timeEnd = DateTime.ParseExact(averagingEnd, format, CultureInfo.InvariantCulture);
                 
             var position = new Measurement
             {
-                Name = csvReader.GetField<string>("Name"),
-                Longitude = csvReader.GetField<decimal>(isGlobal ? "Lon" : "E"),
-                Latitude = csvReader.GetField<decimal>(isGlobal ? "Lat" : "N"),
-                Height = csvReader.GetField<decimal>(isGlobal ? "H" : "Z"),
-                AntennaHeight = csvReader.GetField<decimal>("AntH"),
+                Name = csvReader.GetField<string>("Název"),
+                Height = csvReader.GetField<decimal?>(isGlobal ? "H" : "Z") ?? 0,
+                AntennaHeight = csvReader.GetField<decimal?>("Ant H") ?? 0,
                 TimeStart = timeStart,
                 TimeEnd = timeEnd,
-                Pdop = csvReader.GetField<decimal>("PDOP"),
+                Pdop = csvReader.GetField<decimal?>("PDOP") ?? 0,
                 SolutionStatus = csvReader.GetField<string>("Status").Trim(),
-                Metoda = csvReader.GetField<string>("VRS Name").Trim(),
-                SharedSats = csvReader.GetField<int>("Shared Sats"),
-                Code = csvReader.GetField<string>("Desc").Trim()
+                Metoda = csvReader.GetField<string>("MountPoint").Trim(),
+                SharedSats = csvReader.GetField<int>("Sdílet Sate"),
+                Code = csvReader.GetField<string>("Popis").Trim()
             };
-            measurements.Add(position);
+
+            if (isGlobal)
+            {
+                var zemDelka = csvReader.GetField<string>("Zem. délka");
+                var zemSirka = csvReader.GetField<string>("Zem. šířka");
+                position.Longitude = CoordinatesToDegrees(zemDelka);
+                position.Latitude = CoordinatesToDegrees(zemSirka);
+            }
+            else
+            {
+                position.Longitude = csvReader.GetField<decimal?>("Y") ?? 0;
+                position.Latitude = csvReader.GetField<decimal?>("X") ?? 0;
+            }
+
+            position.Longitude = Math.Abs(position.Longitude);
+            position.Latitude = Math.Abs(position.Latitude);
+            
+            if (position.AntennaHeight != 0)
+                measurements.Add(position);
         }
 
         return measurements;
+    }
+
+    private static decimal CoordinatesToDegrees(string coordinate)
+    {
+        var coordinateParts = coordinate.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Select(s => decimal.TryParse(s, out var result) ? result : 0)
+            .ToList();
+
+        if (coordinateParts.Count != 3)
+            return 0;
+
+        return coordinateParts[0] + coordinateParts[1] / 60 + coordinateParts[2] / 3600;
     }
 }

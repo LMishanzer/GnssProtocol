@@ -62,7 +62,10 @@
             </ComboBox>
             
             <TextBlock Text="Katastralní území" Margin="20 20 20 0" />
-            <ComboBox x:Name="KatastralniUzemi" Width="400" SelectedIndex="0" Margin="20" SelectionChanged="UzemiOnSelectionChanged"></ComboBox>
+            <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top">
+                <TextBox x:Name="UzemiTextBox" Width="200" Margin="20 20 20 0" KeyUp="InputTextBox_KeyUp" KeyDown="InputTextBox_KeyDown" />
+                <ListBox x:Name="SuggestionsListBox" Width="200" Margin="20 0 20 20" IsVisible="False" SelectionChanged="SuggestionsListBox_SelectionChanged" />
+            </StackPanel>
             
             <TextBlock Text="Okres:" Margin="20 20 20 0" />
             <TextBlock x:Name="Okres" Margin="20" />

@@ -3,8 +3,8 @@ namespace GisProtocolLib.Models;
 public class Measurement
 {
     public string Name { get; set; } = string.Empty;
-    public decimal Longitude { get; init; }
-    public decimal Latitude { get; init; }
+    public decimal Longitude { get; set; }
+    public decimal Latitude { get; set; }
     public decimal Height { get; init; }
     public decimal AntennaHeight { get; init; }
     public DateTime TimeStart { get; init; }

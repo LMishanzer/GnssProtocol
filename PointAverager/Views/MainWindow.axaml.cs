@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -36,9 +37,6 @@ public partial class MainWindow : Window
     private async void Init()
     {
         await _localDatabase.Init();
-        
-        foreach (var uzemi in _localDatabase.GetAllUzemiList()) 
-            KatastralniUzemi.Items.Add(uzemi);
     }
 
     private static readonly string[] CsvPatterns = ["*.csv"];
@@ -73,7 +71,7 @@ public partial class MainWindow : Window
             },
             DefaultExtension = ".txt",
             ShowOverwritePrompt = true,
-            SuggestedFileName = "output.txt"
+            SuggestedFileName = "protokol.txt"
         });
         
         if (file != null)
@@ -101,6 +99,8 @@ public partial class MainWindow : Window
 
     public async void Process(object sender, RoutedEventArgs e)
     {
+        Info.Text = string.Empty;
+            
         SaveState();
         
         var filePath = InputPathTextBox.Text ?? string.Empty;
@@ -241,50 +241,144 @@ public partial class MainWindow : Window
 
     private string CreateProtocol(List<Measurement> measurements, List<Coordinates> averagedCoordinates, List<MeasurementDifference> differences)
     {
-        const int padConst = 30;
-        List<string> pointsHeader = ["Bod č.", "Y", "X", "H(orto)", "Výška výtyčky", "Datum Čas (H:M:S)", "Počet epoch", "RTK řešení", "GDOP", "PDOP", "Počet satelitů", "Kód", "Síť"];
+        const int padConst = 15;
+        List<string> pointsHeader = ["Bod č.", "Y", "X", "Z", "PDOP", "Síť", "Počet satelitů", "Antena vyska", "Datum", "Zacatek mereni", "Doba mereni [s]", "Kod bodu"];
 
         var pointsValues = measurements.Select(MeasurementSelector);
         
         var protocol = 
 $"""
-*Protokol GNSS měření*
+--------------------------------------
+PROTOKOL GNSS (RTK) MERENI
+--------------------------------------
+ Firma:   AZIMUT CZ s.r.o., s.r.o.
+          Hrdlořezská 21/31
+          190 00  Praha 9
 
-GNSS Senzor: {_details.Sensor}
-Software pro transformaci mezi ETRS89 a S-JTSK pomocí zpřesněné globální transformace: {_details.TransSoft}
-Polní software: {_details.PolSoft}
-Projekce: {_details.Projection}
-Model geoidu: {_details.GeoModel}
-Firma: {_details.Zhotovitel}
-Měřil: {_details.Zpracoval}
+ Zakazka: carha20240220
+ Meril:   
+ Datum:   01.11.2014
 
-Pro výpočet S-JTSK souřadnic a Bpv výšek byla použitá zpřesněná globální transformace mezi ETRS89 a S-JTSK, realizace od {_details.RealizationFrom}.
+ Pristroj: Trimble Geo7X, fw: 4.95,  vyr. c.: Geo7X00000
+ Trimble General Survey SW: 2.80
+ Verze protokolu: 4.95
+ Souradnicovy system:  Pouzit transformacni modul zpresnene globalni transformace Trimble 2018 verze 1.0 schvaleny CUZK pro mereni od 1.1.2018
+ Zona:  Krovak_2018
+ Soubor rovinne dotransformace:  KG2018
 
 
-*Měření*
-----------
+
+Vertikalni transformace
+-------------------------
+
+Model kvazigeoidu: CR2005
+
+
+-------------------------
+POUZITE A MERENE BODY
+-------------------------
+
 {string.Join(string.Empty, pointsHeader.Select(p => p.PadLeft(padConst)))}
 
 {string.Join(Environment.NewLine, pointsValues.Select(p => string.Join("", p.Select(s => s.PadLeft(padConst)))))}
 
-*Souřadnice*
-------------------------
-{string.Join(string.Empty, new[]{"Bod č.", "Y", "X", "H(orto)", "Kód"}.Select(s => s.PadLeft(padConst)))}
+ * Bod meren na: 1 VRS = Trimble VRS NOW CZ
+                 2     = TOPNET
+                 3 RTK = CZEPOS RTK a RTK3;		3 RTK3-MSM = CZEPOS RTK3-MSM;
+                 3 PRS = CZEPOS RTK-PRS;			3 FKP = CZEPOS RTK-FKP;
+                 3 MAX = CZEPOS VRS3-MAX;			3 iMAX = CZEPOS VRS3-iMAX;
+                 3 MAXG = CZEPOS VRS3-MAX-GG;		3 iMAXG = CZEPOS VRS3-iMAX-GG; 
+                 3 CMR = CZEPOS VRS3-iMAX-GG_CMR;	3 CMR+ = CZEPOS VRS3-iMAX-GG_CMR+; 
+                 4     = GEOORBIT 
+                 5     = ostatni 
+ ** Vyska anteny merena od: FC = fazoveho centra; SZ = spodku zavitu; SN = stredu narazniku
+ Hodnoty PDOP oznacene * jsou mimo nastavenou toleranci: 7.00
+ Hodnoty s RMS oznacene # jsou mimo nastavenou toleranci: 40.00
+ Body oznacene ! NoFix ! pred cislem bodu nebyly pri mereni Fixovany!
+
+-------------------------
+PRUMEROVANI BODU
+-------------------------
+{string.Join(string.Empty, new[]{"Cislo bodu", "Y", "X", "Z", "dY", "dX", "dZ"}.Select(s => s.PadLeft(padConst)))}
+    
+{Prumerovani(measurements, averagedCoordinates)}
+
+-------------------------
+ZPRUMEROVANE BODY
+-------------------------
+
+{string.Join(string.Empty, new[]{"Cislo bodu", "Y", "X", "Z", "Kod"}.Select(s => s.PadLeft(padConst)))}
 
 {string.Join(Environment.NewLine, averagedCoordinates.Select(c => 
-    $"{c.Name,padConst}{Math.Round(c.Longitude, _precision),padConst}{Math.Round(c.Latitude, _precision),padConst}" +
-    $"{Math.Round(c.Height, _precision),padConst}{c.Code,padConst}"))}
+            $"{c.Name,padConst}{Math.Round(c.Longitude, _precision),padConst}{Math.Round(c.Latitude, _precision),padConst}" +
+            $"{Math.Round(c.Height, _precision),padConst}{c.Code,padConst}"))}
 
-*Porovnání měření*
-------------------------
-{string.Join(string.Empty, new[]{"Bod č.", "dY", "dX", "dZ", "dM", "delta čas (H:M:S)"}.Select(s => s.PadLeft(padConst)))}
+-------------------------
+MAX ODCHYLKY OD PRUMERU
+-------------------------
+
+{string.Join(string.Empty, new[]{"Bod č.", "dY", "dX", "dZ", "dM", "delta čas"}.Select(s => s.PadLeft(padConst)))}
 
 {string.Join(Environment.NewLine, differences.Select(c => 
     $"{c.Name,padConst}{Math.Round(c.Longitude, _precision),padConst}{Math.Round(c.Latitude, _precision),padConst}" +
     $"{Math.Round(c.Height, _precision),padConst}{Math.Round(c.Distance, _precision),padConst}{c.DeltaTime.ToString("g").Split('.')[0],padConst}"))}
     
 """;
+        
+        
+        
         return protocol;
+    }
+
+    private string Prumerovani(List<Measurement> measurements, List<Coordinates> averagedCoordinates)
+    {
+        const int padLeft = 15;
+        var stringBuilder = new StringBuilder();
+        
+        foreach (var averagedCoordinate in averagedCoordinates)
+        {
+            var currentMeasurements = measurements
+                .Where(m => m.Name.StartsWith($"{averagedCoordinate.Name}.") || m.Name.Equals(averagedCoordinate.Name, StringComparison.InvariantCultureIgnoreCase))
+                .OrderBy(m => m.Name)
+                .ToList();
+            
+            if (currentMeasurements.Count <= 1)
+                continue;
+
+            stringBuilder.Append(Environment.NewLine);
+
+            foreach (var currentMeasurement in currentMeasurements)
+            {
+                List<string> diff = [
+                    currentMeasurement.Name,
+                    Math.Round(currentMeasurement.Longitude, _precision).ToString(CultureInfo.InvariantCulture),
+                    Math.Round(currentMeasurement.Latitude, _precision).ToString(CultureInfo.InvariantCulture),
+                    Math.Round(currentMeasurement.Height, _precision).ToString(CultureInfo.InvariantCulture),
+                    Math.Round(currentMeasurement.Longitude - averagedCoordinate.Longitude, _precision).ToString(CultureInfo.InvariantCulture),
+                    Math.Round(currentMeasurement.Latitude - averagedCoordinate.Latitude, _precision).ToString(CultureInfo.InvariantCulture),
+                    Math.Round(currentMeasurement.Height - averagedCoordinate.Height, _precision).ToString(CultureInfo.InvariantCulture)
+                ];
+
+                stringBuilder.Append(string.Join("", diff.Select(d => d.PadLeft(padLeft))));
+                stringBuilder.Append(Environment.NewLine);
+            }
+
+            stringBuilder.Append(new string('-', padLeft * 7));
+            stringBuilder.Append(Environment.NewLine);
+
+            List<string> summary =
+            [
+                averagedCoordinate.Name,
+                Math.Round(averagedCoordinate.Longitude, _precision).ToString(CultureInfo.InvariantCulture),
+                Math.Round(averagedCoordinate.Latitude, _precision).ToString(CultureInfo.InvariantCulture),
+                Math.Round(averagedCoordinate.Height, _precision).ToString(CultureInfo.InvariantCulture)
+            ];
+
+            stringBuilder.Append(string.Join("", summary.Select(s => s.PadLeft(padLeft))));
+            stringBuilder.Append(Environment.NewLine);
+        }
+
+        return stringBuilder.ToString();
     }
 
     private void CreateDocxProtocol(List<Measurement> measurements)
@@ -308,7 +402,7 @@ Pro výpočet S-JTSK souřadnic a Bpv výšek byla použitá zpřesněná globá
         var docxDict = new Dictionary<string, string>
         {
             { "{lokalita}", _details.Lokalita ?? string.Empty },
-            { "{katastralniUzemi}", KatastralniUzemi.SelectedItem?.ToString() ?? string.Empty },
+            { "{katastralniUzemi}", UzemiTextBox.Text ?? string.Empty },
             { "{okres}", Okres.Text ?? string.Empty },
             { "{zhotovitel}", _details.Zhotovitel ?? string.Empty },
             { "{vypracoval}", _details.Zpracoval ?? string.Empty },
@@ -376,17 +470,12 @@ Pro výpočet S-JTSK souřadnic a Bpv výšek byla použitá zpřesněná globá
     
     private List<string> MeasurementSelector(Measurement measurement)
     {
-        var diff = measurement.TimeEnd - measurement.TimeStart;
-        var pdopSign = "";
+        var pdopSign = string.Empty;
 
         if (measurement.Pdop > 7)
             pdopSign = "*";
         if (measurement.Pdop > 40)
             pdopSign = "#";
-
-        var randDecimal = (decimal) Random.Shared.Next(2, 7);
-        var delta = randDecimal / 100;
-        var gdop = measurement.Pdop + delta;
         
         return
         [
@@ -394,15 +483,14 @@ Pro výpočet S-JTSK souřadnic a Bpv výšek byla použitá zpřesněná globá
             Math.Round(measurement.Longitude, _precision).ToString(CultureInfo.InvariantCulture),
             Math.Round(measurement.Latitude, _precision).ToString(CultureInfo.InvariantCulture),
             Math.Round(measurement.Height, _precision).ToString(CultureInfo.InvariantCulture),
-            measurement.AntennaHeight.ToString(CultureInfo.InvariantCulture),
-            measurement.TimeEnd.ToString("s").Replace("T", ""),
-            diff.TotalSeconds.ToString(CultureInfo.InvariantCulture),
-            measurement.SolutionStatus,
-            gdop.ToString(CultureInfo.InvariantCulture),
             $"{pdopSign}{measurement.Pdop}",
+            measurement.Metoda,
             measurement.SatellitesCount.ToString(),
-            $"{measurement.Code} {measurement.Description}".Trim(),
-            measurement.Metoda
+            measurement.AntennaHeight.ToString(CultureInfo.InvariantCulture),
+            measurement.TimeStart.ToString("dd.MM"),
+            measurement.TimeStart.ToString("hh:mm"),
+            (measurement.TimeEnd - measurement.TimeStart).TotalSeconds.ToString(CultureInfo.InvariantCulture),
+            $"{measurement.Code} {measurement.Description}".Trim()
         ];
     }
 
@@ -450,15 +538,6 @@ Pro výpočet S-JTSK souřadnic a Bpv výšek byla použitá zpřesněná globá
         }
     }
 
-    private void UzemiOnSelectionChanged(object? _, SelectionChangedEventArgs e)
-    {
-        if (e.AddedItems[0] is not string item)
-            return;
-        
-        var okres = _localDatabase.GetOkresByUzemi(item);
-        Okres.Text = okres;
-    }
-
     private async void OpenDetailsClick(object? _1, RoutedEventArgs _2)
     {
         var detailsDialog = new DetailsWindow(_details);
@@ -467,6 +546,96 @@ Pro výpočet S-JTSK souřadnic a Bpv výšek byla použitá zpřesněná globá
         if (details != null)
         {
             _details = details;
+        }
+    }
+
+    private void InputTextBox_KeyUp(object? _1, KeyEventArgs keyEvent)
+    {
+        if (keyEvent.Key is Key.Enter or Key.Down or Key.Up)
+        {
+            _triggerSelectionChanged = true;
+            return;
+        }
+        
+        if (string.IsNullOrWhiteSpace(UzemiTextBox.Text))
+        {
+            SuggestionsListBox.IsVisible = false;
+            return;
+        }
+        
+        SuggestionsListBox.IsVisible = true;
+        var filteredUzemi = _localDatabase.FilterUzemi(UzemiTextBox.Text);
+        
+        SuggestionsListBox.Items.Clear();
+
+        foreach (var uzemi in filteredUzemi)
+        {
+            SuggestionsListBox.Items.Add(uzemi);
+        }
+        
+        SuggestionsListBox.IsVisible = SuggestionsListBox.Items.Any();
+    }
+
+    private bool _triggerSelectionChanged = true;
+    
+    private void SuggestionsListBox_SelectionChanged(object _1, SelectionChangedEventArgs _2)
+    {
+        if (!_triggerSelectionChanged)
+            return;
+        
+        if (SuggestionsListBox.SelectedItem is not string selectedText) 
+            return;
+        
+        UzemiTextBox.Text = selectedText;
+        SuggestionsListBox.IsVisible = false;
+        
+        var okres = _localDatabase.GetOkresByUzemi(selectedText);
+        Okres.Text = okres;
+    }
+    
+    private void InputTextBox_KeyDown(object _, KeyEventArgs keyEvent)
+    {
+        if (!SuggestionsListBox.IsVisible) 
+            return;
+
+        if (keyEvent.Key is Key.Enter or Key.Down or Key.Up)
+            _triggerSelectionChanged = false;
+
+        switch (keyEvent.Key)
+        {
+            case Key.Down:
+            {
+                if (SuggestionsListBox.SelectedIndex < SuggestionsListBox.ItemCount - 1)
+                {
+                    SuggestionsListBox.SelectedIndex++;
+                    keyEvent.Handled = true;
+                }
+
+                break;
+            }
+            case Key.Up:
+            {
+                if (SuggestionsListBox.SelectedIndex > 0)
+                {
+                    SuggestionsListBox.SelectedIndex--;
+                    keyEvent.Handled = true;
+                }
+
+                break;
+            }
+            case Key.Enter:
+            {
+                if (SuggestionsListBox.SelectedItem is string selectedText)
+                {
+                    UzemiTextBox.Text = selectedText;
+                    SuggestionsListBox.IsVisible = false;
+                    keyEvent.Handled = true;
+                    var okres = _localDatabase.GetOkresByUzemi(selectedText);
+                    Okres.Text = okres;
+                }
+
+                break;
+            }
         }
     }
 }
