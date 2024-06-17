@@ -8,7 +8,6 @@ public class Details
     public string? Projection { get; set; }
     public string? GeoModel { get; set; }
     public string? RealizationFrom { get; set; }
-    public string? Lokalita { get; set; }
     public string? Zhotovitel { get; set; }
     public string? Zpracoval { get; set; }
     public string? Prijemace { get; set; }
@@ -26,5 +25,9 @@ public class Details
     public string? KontrolaPripojeni { get; set; }
     public string? TransformacniPostup { get; set; }
     public string? TransformaceZpracovatelskyProgram { get; set; }
-    public string? Poznamky { get; set; }
+    public int? PrecisionInput { get; set; }
+    public int? CoordinatesTypeIndex { get; set; }
+    public string? CoordinatesType { get; set; }
+    public int? PouzitaStaniceIndex { get; set; }
+    public string? PouzitaStanice { get; set; }
 }

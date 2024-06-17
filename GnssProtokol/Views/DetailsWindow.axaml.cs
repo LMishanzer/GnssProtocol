@@ -12,6 +12,27 @@ public partial class DetailsWindow : Window
 
         SetFields(details);
     }
+    
+    public void ChangeAccuracy(object sender, SelectionChangedEventArgs e)
+    {
+        if (PrecisionInput == null)
+            return;
+
+        var item = e.AddedItems[0] as ComboBoxItem;
+
+        if (item?.Content?.ToString() == "Lokální")
+        {
+            PrecisionInput.Minimum = 2;
+            PrecisionInput.Maximum = 3;
+            PrecisionInput.Value = 2;
+
+            return;
+        }
+
+        PrecisionInput.Minimum = 7;
+        PrecisionInput.Maximum = 10;
+        PrecisionInput.Value = 9;
+    }
 
     private void SetFields(Details details)
     {
@@ -20,8 +41,7 @@ public partial class DetailsWindow : Window
         PolSoft.Text = details.PolSoft; 
         Projection.Text = details.Projection; 
         GeoModel.Text = details.GeoModel; 
-        RealizationFrom.Text = details.RealizationFrom; 
-        Lokalita.Text = details.Lokalita; 
+        RealizationFrom.Text = details.RealizationFrom;
         Zhotovitel.Text = details.Zhotovitel; 
         Zpracoval.Text = details.Zpracoval; 
         Prijemace.Text = details.Prijemace; 
@@ -39,7 +59,9 @@ public partial class DetailsWindow : Window
         KontrolaPripojeni.Text = details.KontrolaPripojeni; 
         TransformacniPostup.Text = details.TransformacniPostup; 
         TransformaceZpracovatelskyProgram.Text = details.TransformaceZpracovatelskyProgram; 
-        Poznamky.Text = details.Poznamky;
+        PrecisionInput.Value = details.PrecisionInput;
+        CoordinatesType.SelectedIndex = details.CoordinatesTypeIndex ?? 0;
+        PouzitaStanice.SelectedIndex = details.PouzitaStaniceIndex ?? 0;
     }
 
     private void OnOkButtonClick(object? _1, RoutedEventArgs _2)
@@ -52,7 +74,6 @@ public partial class DetailsWindow : Window
             Projection = Projection.Text ?? string.Empty,
             GeoModel = GeoModel.Text ?? string.Empty,
             RealizationFrom = RealizationFrom.Text ?? string.Empty,
-            Lokalita = Lokalita.Text ?? string.Empty,
             Zhotovitel = Zhotovitel.Text ?? string.Empty,
             Zpracoval = Zpracoval.Text ?? string.Empty,
             Prijemace = Prijemace.Text ?? string.Empty,
@@ -70,7 +91,11 @@ public partial class DetailsWindow : Window
             KontrolaPripojeni = KontrolaPripojeni.Text ?? string.Empty,
             TransformacniPostup = TransformacniPostup.Text ?? string.Empty,
             TransformaceZpracovatelskyProgram = TransformaceZpracovatelskyProgram.Text ?? string.Empty,
-            Poznamky = Poznamky.Text ?? string.Empty
+            PrecisionInput = (int?) PrecisionInput.Value,
+            CoordinatesTypeIndex = CoordinatesType.SelectedIndex,
+            CoordinatesType = (CoordinatesType.SelectionBoxItem as ComboBoxItem)?.Content?.ToString(),
+            PouzitaStaniceIndex = PouzitaStanice.SelectedIndex,
+            PouzitaStanice = (PouzitaStanice.SelectionBoxItem as ComboBoxItem)?.Content?.ToString()
         };
         
         Close(ret);

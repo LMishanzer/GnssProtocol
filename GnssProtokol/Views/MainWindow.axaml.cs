@@ -22,13 +22,13 @@ public partial class MainWindow : Window
 {
     private readonly LocalDatabase _localDatabase;
     private Details _details = new();
-    
+
     public MainWindow()
     {
         InitializeComponent();
         InputPathTextBox.AddHandler(DragDrop.DropEvent, OnFileDrop);
         InputPathTextBox.AddHandler(DragDrop.DragEnterEvent, OnDrag);
-        
+
         _localDatabase = new LocalDatabase();
         Init();
         RestoreState();
@@ -40,7 +40,7 @@ public partial class MainWindow : Window
     }
 
     private static readonly string[] CsvPatterns = ["*.csv"];
-    
+
     public async void OnInputButtonClick(object sender, RoutedEventArgs e)
     {
         var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
@@ -54,32 +54,32 @@ public partial class MainWindow : Window
                 }
             }
         });
-        
+
         if (files.Any())
         {
             InputPathTextBox.Text = files[0].Path.LocalPath;
         }
     }
-    
+
     public async void OnOutputButtonClick(object sender, RoutedEventArgs e)
     {
         var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
-            FileTypeChoices = new []
+            FileTypeChoices = new[]
             {
-                FilePickerFileTypes.TextPlain, 
+                FilePickerFileTypes.TextPlain,
             },
             DefaultExtension = ".txt",
             ShowOverwritePrompt = true,
             SuggestedFileName = "protokol.txt"
         });
-        
+
         if (file != null)
         {
             OutputPathTextBox.Text = file.Path.LocalPath;
         }
     }
-    
+
     public async void OnDocxOutputButtonClick(object sender, RoutedEventArgs e)
     {
         var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
@@ -88,7 +88,7 @@ public partial class MainWindow : Window
             ShowOverwritePrompt = true,
             SuggestedFileName = "protokol.docx"
         });
-        
+
         if (file != null)
         {
             OutputDocxPathTextBox.Text = file.Path.LocalPath;
@@ -100,23 +100,23 @@ public partial class MainWindow : Window
     public async void Process(object sender, RoutedEventArgs e)
     {
         Info.Text = string.Empty;
-            
+
         SaveState();
-        
+
         var filePath = InputPathTextBox.Text ?? string.Empty;
 
         if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
         {
             Info.Text = "No input file";
-            
+
             return;
         }
 
         try
         {
             ProcessButton.IsEnabled = false;
-            var isGlobal = CoordinatesType.SelectionBoxItem?.ToString() == "Globální";
-            _precision = (int?) PrecisionInput.Value ?? 2;
+            var isGlobal = _details.CoordinatesType == "Globální";
+            _precision = _details.PrecisionInput ?? 2;
 
             var typTechnologie = (TypTechnologie.SelectedItem as ComboBoxItem)?.Content as string ?? string.Empty;
             ICsvReader csvReader = typTechnologie switch
@@ -126,7 +126,8 @@ public partial class MainWindow : Window
                 _ => throw new Exception("Neznámý typ technologie")
             };
 
-            var measurements = await csvReader.ReadData(filePath, isGlobal);
+            var csvData = await csvReader.ReadData(filePath, isGlobal);
+            var measurements = csvData.Measurements;
 
             var (aggregatedPositions, differences) = PositionsHelper.AggregatePositions(measurements);
             var textToWrite = CreateProtocol(measurements, aggregatedPositions, differences);
@@ -134,10 +135,10 @@ public partial class MainWindow : Window
             var outputFile = OutputPathTextBox.Text ?? string.Empty;
 
             await File.WriteAllTextAsync(outputFile, textToWrite);
-            
+
             CreateDocxProtocol(measurements);
 
-            Info.Text = "Úspěšně dokončeno";
+            Info.Text = GetStatus(csvData.UnreadMeasurementNames);
         }
         catch (Exception ex)
         {
@@ -149,8 +150,34 @@ public partial class MainWindow : Window
         }
     }
 
+    private static string GetStatus(List<string> unusedMeasurementNames)
+    {
+        const string successMessage = "Úspěšně dokončeno";
+        const string unusedMeasurementsMessage = "Vynechané body:";
+        const int maxLines = 10;
+
+        if (unusedMeasurementNames.Count == 0)
+            return successMessage;
+
+        var stringBuilder = new StringBuilder();
+
+        stringBuilder.AppendLine(successMessage);
+        stringBuilder.AppendLine();
+        stringBuilder.AppendLine(unusedMeasurementsMessage);
+
+        foreach (var unusedMeasurement in unusedMeasurementNames.Take(maxLines))
+        {
+            stringBuilder.AppendLine(unusedMeasurement);
+        }
+
+        if (unusedMeasurementNames.Count > maxLines)
+            stringBuilder.AppendLine("...");
+
+        return stringBuilder.ToString();
+    }
+
     private const string StateFileName = "state.json";
-    
+
     private async void SaveState()
     {
         var state = new FormState
@@ -159,16 +186,16 @@ public partial class MainWindow : Window
             InputFile = InputPathTextBox.Text,
             OutputFile = OutputPathTextBox.Text,
             OutputDocxFile = OutputDocxPathTextBox.Text,
-            Precision = (int?) PrecisionInput.Value,
-            CoordinatesTypeIndex = CoordinatesType.SelectedIndex,
-            PouzitaStaniceIndex = PouzitaStanice.SelectedIndex,
+            Precision = _details.PrecisionInput,
+            CoordinatesTypeIndex = _details.CoordinatesTypeIndex,
+            PouzitaStaniceIndex = _details.PouzitaStaniceIndex,
             Sensor = _details.Sensor,
             TransSoft = _details.TransSoft,
             PolSoft = _details.PolSoft,
             Projection = _details.Projection,
             GeoModel = _details.GeoModel,
             RealizationFrom = _details.RealizationFrom,
-            Lokalita = _details.Lokalita,
+            Lokalita = Lokalita.Text,
             Zhotovitel = _details.Zhotovitel,
             Zpracoval = _details.Zpracoval,
             Prijimace = _details.Prijemace,
@@ -186,9 +213,9 @@ public partial class MainWindow : Window
             KontrolaPripojeni = _details.KontrolaPripojeni,
             TransformacniPostup = _details.TransformacniPostup,
             TransformaceZpracovatelskyProgram = _details.TransformaceZpracovatelskyProgram,
-            Poznamky = _details.Poznamky
+            Poznamky = Poznamky.Text
         };
-        
+
         await File.WriteAllTextAsync(StateFileName, JsonConvert.SerializeObject(state));
     }
 
@@ -196,10 +223,10 @@ public partial class MainWindow : Window
     {
         if (!File.Exists(StateFileName))
             return;
-        
+
         var text = await File.ReadAllTextAsync(StateFileName);
         var state = JsonConvert.DeserializeObject<FormState>(text);
-        
+
         if (state == null)
             return;
 
@@ -207,16 +234,17 @@ public partial class MainWindow : Window
         InputPathTextBox.Text = state.InputFile;
         OutputPathTextBox.Text = state.OutputFile;
         OutputDocxPathTextBox.Text = state.OutputDocxFile;
-        PrecisionInput.Value = state.Precision;
-        CoordinatesType.SelectedIndex = state.CoordinatesTypeIndex ?? 0;
-        PouzitaStanice.SelectedIndex = state.PouzitaStaniceIndex ?? 0;
+        Lokalita.Text = state.Lokalita;
+        Poznamky.Text = state.Poznamky;
+        _details.PrecisionInput = state.Precision;
+        _details.CoordinatesTypeIndex = state.CoordinatesTypeIndex ?? 0;
+        _details.PouzitaStaniceIndex = state.PouzitaStaniceIndex ?? 0;
         _details.Sensor = state.Sensor;
         _details.TransSoft = state.TransSoft;
         _details.PolSoft = state.PolSoft;
         _details.Projection = state.Projection;
         _details.GeoModel = state.GeoModel;
         _details.RealizationFrom = state.RealizationFrom;
-        _details.Lokalita = state.Lokalita;
         _details.Zhotovitel = state.Zhotovitel;
         _details.Zpracoval = state.Zpracoval;
         _details.Prijemace = state.Prijimace;
@@ -234,114 +262,86 @@ public partial class MainWindow : Window
         _details.KontrolaPripojeni = state.KontrolaPripojeni;
         _details.TransformacniPostup = state.TransformacniPostup;
         _details.TransformaceZpracovatelskyProgram = state.TransformaceZpracovatelskyProgram;
-        _details.Poznamky = state.Poznamky;
     }
-
-    
 
     private string CreateProtocol(List<Measurement> measurements, List<Coordinates> averagedCoordinates, List<MeasurementDifference> differences)
     {
-        const int padConst = 15;
-        List<string> pointsHeader = ["Bod č.", "Y", "X", "Z", "PDOP", "Síť", "Počet satelitů", "Antena vyska", "Datum", "Zacatek mereni", "Doba mereni [s]", "Kod bodu"];
+        const int tablePadConst = 13;
+        const int padConst = 16;
+        List<string> pointsHeaderFirstLine =  ["Bod č.", "Y", "X", "Z", "PDOP", "Přesnost", "Přesnost", "Přesnost", "Síť", "Počet",    "Anténa", "Datum", "Začátek", "Doba",   "Kod"];
+        List<string> pointsHeaderSecondLine = ["",       "",  "",  "",  "",      "Y",       "X",        "Z",        "",    "satelitů", "výška",  "",      "měření",  "měření", "bodu"];
 
-        var pointsValues = measurements.Select(MeasurementSelector);
-        
-        var protocol = 
-$"""
---------------------------------------
-PROTOKOL GNSS (RTK) MERENI
---------------------------------------
- Firma:   AZIMUT CZ s.r.o., s.r.o.
-          Hrdlořezská 21/31
-          190 00  Praha 9
+        var pointsValues = measurements.Select(measurement => MeasurementSelector(measurement, tablePadConst));
 
- Zakazka: carha20240220
- Meril:   
- Datum:   01.11.2014
+        var protocol =
+            $"""
+             --------------------------------------
+             PROTOKOL GNSS (RTK) MĚŘENÍ
+             --------------------------------------
 
- Pristroj: Trimble Geo7X, fw: 4.95,  vyr. c.: Geo7X00000
- Trimble General Survey SW: 2.80
- Verze protokolu: 4.95
- Souradnicovy system:  Pouzit transformacni modul zpresnene globalni transformace Trimble 2018 verze 1.0 schvaleny CUZK pro mereni od 1.1.2018
- Zona:  Krovak_2018
- Soubor rovinne dotransformace:  KG2018
+             GNSS Senzor: {_details.Sensor}
+             Software pro transformaci mezi ETRS89 a S-JTSK pomocí zpřesněné globální transformace: {_details.TransSoft}
+             Polní software: {_details.PolSoft}
+             Projekce: {_details.Projection}
+             Model geoidu: {_details.GeoModel}
+             Firma: {_details.Zhotovitel}
+             Měřil: {_details.Zpracoval}
 
+             Pro výpočet S-JTSK souřadnic a Bpv výšek byla použitá zpřesněná globální transformace mezi ETRS89 a S-JTSK, realizace od {_details.RealizationFrom}.
 
+             -------------------------
+             POUŽITÉ A MĚŘENÉ BODY
+             -------------------------
 
-Vertikalni transformace
--------------------------
+             {string.Join(string.Empty, pointsHeaderFirstLine.Select(p => p.PadLeft(tablePadConst)))}
+             {string.Join(string.Empty, pointsHeaderSecondLine.Select(p => p.PadLeft(tablePadConst)))}
 
-Model kvazigeoidu: CR2005
+             {string.Join(Environment.NewLine, pointsValues.Select(p => string.Join("", p.Select(s => s.PadLeft(tablePadConst)))))}
 
+             -------------------------
+             PRŮMĚROVÁNÍ BODŮ
+             -------------------------
 
--------------------------
-POUZITE A MERENE BODY
--------------------------
+             {string.Join(string.Empty, new[] { "Číslo bodu", "Y", "X", "Z", "dY", "dX", "dZ" }.Select(s => s.PadLeft(padConst)))}
+                 
+             {Prumerovani(measurements, averagedCoordinates, padConst)}
 
-{string.Join(string.Empty, pointsHeader.Select(p => p.PadLeft(padConst)))}
+             -------------------------
+             ZPRŮMĚROVANÉ BODY
+             -------------------------
 
-{string.Join(Environment.NewLine, pointsValues.Select(p => string.Join("", p.Select(s => s.PadLeft(padConst)))))}
+             {string.Join(string.Empty, new[] { "Číslo bodu", "Y", "X", "Z", "Kod" }.Select(s => s.PadLeft(padConst)))}
 
- * Bod meren na: 1 VRS = Trimble VRS NOW CZ
-                 2     = TOPNET
-                 3 RTK = CZEPOS RTK a RTK3;		3 RTK3-MSM = CZEPOS RTK3-MSM;
-                 3 PRS = CZEPOS RTK-PRS;			3 FKP = CZEPOS RTK-FKP;
-                 3 MAX = CZEPOS VRS3-MAX;			3 iMAX = CZEPOS VRS3-iMAX;
-                 3 MAXG = CZEPOS VRS3-MAX-GG;		3 iMAXG = CZEPOS VRS3-iMAX-GG; 
-                 3 CMR = CZEPOS VRS3-iMAX-GG_CMR;	3 CMR+ = CZEPOS VRS3-iMAX-GG_CMR+; 
-                 4     = GEOORBIT 
-                 5     = ostatni 
- ** Vyska anteny merena od: FC = fazoveho centra; SZ = spodku zavitu; SN = stredu narazniku
- Hodnoty PDOP oznacene * jsou mimo nastavenou toleranci: 7.00
- Hodnoty s RMS oznacene # jsou mimo nastavenou toleranci: 40.00
- Body oznacene ! NoFix ! pred cislem bodu nebyly pri mereni Fixovany!
+             {string.Join(Environment.NewLine, averagedCoordinates.Select(c =>
+                 $"{c.Name,padConst}{Math.Round(c.Longitude, _precision),padConst}{Math.Round(c.Latitude, _precision),padConst}" +
+                 $"{Math.Round(c.Height, _precision),padConst}{c.Code,padConst}"))}
 
--------------------------
-PRUMEROVANI BODU
--------------------------
-{string.Join(string.Empty, new[]{"Cislo bodu", "Y", "X", "Z", "dY", "dX", "dZ"}.Select(s => s.PadLeft(padConst)))}
-    
-{Prumerovani(measurements, averagedCoordinates)}
+             -------------------------
+             MAX ODCHÝLKY OD PRŮMERU
+             -------------------------
 
--------------------------
-ZPRUMEROVANE BODY
--------------------------
+             {string.Join(string.Empty, new[] { "Číslo bodu", "dY", "dX", "dZ", "dM", "delta čas" }.Select(s => s.PadLeft(padConst)))}
 
-{string.Join(string.Empty, new[]{"Cislo bodu", "Y", "X", "Z", "Kod"}.Select(s => s.PadLeft(padConst)))}
+             {string.Join(Environment.NewLine, differences.Select(c =>
+                 $"{c.Name,padConst}{Math.Round(c.Longitude, _precision),padConst}{Math.Round(c.Latitude, _precision),padConst}" +
+                 $"{Math.Round(c.Height, _precision),padConst}{Math.Round(c.Distance, _precision),padConst}{c.DeltaTime.ToString("g").Split('.')[0],padConst}"))}
+                 
+             """;
 
-{string.Join(Environment.NewLine, averagedCoordinates.Select(c => 
-            $"{c.Name,padConst}{Math.Round(c.Longitude, _precision),padConst}{Math.Round(c.Latitude, _precision),padConst}" +
-            $"{Math.Round(c.Height, _precision),padConst}{c.Code,padConst}"))}
-
--------------------------
-MAX ODCHYLKY OD PRUMERU
--------------------------
-
-{string.Join(string.Empty, new[]{"Bod č.", "dY", "dX", "dZ", "dM", "delta čas"}.Select(s => s.PadLeft(padConst)))}
-
-{string.Join(Environment.NewLine, differences.Select(c => 
-    $"{c.Name,padConst}{Math.Round(c.Longitude, _precision),padConst}{Math.Round(c.Latitude, _precision),padConst}" +
-    $"{Math.Round(c.Height, _precision),padConst}{Math.Round(c.Distance, _precision),padConst}{c.DeltaTime.ToString("g").Split('.')[0],padConst}"))}
-    
-""";
-        
-        
-        
         return protocol;
     }
 
-    private string Prumerovani(List<Measurement> measurements, List<Coordinates> averagedCoordinates)
+    private string Prumerovani(List<Measurement> measurements, List<Coordinates> averagedCoordinates, int padConst)
     {
-        const int padLeft = 15;
         var stringBuilder = new StringBuilder();
-        
+
         foreach (var averagedCoordinate in averagedCoordinates)
         {
             var currentMeasurements = measurements
                 .Where(m => m.Name.StartsWith($"{averagedCoordinate.Name}.") || m.Name.Equals(averagedCoordinate.Name, StringComparison.InvariantCultureIgnoreCase))
                 .OrderBy(m => m.Name)
                 .ToList();
-            
+
             if (currentMeasurements.Count <= 1)
                 continue;
 
@@ -349,7 +349,8 @@ MAX ODCHYLKY OD PRUMERU
 
             foreach (var currentMeasurement in currentMeasurements)
             {
-                List<string> diff = [
+                List<string> diff =
+                [
                     currentMeasurement.Name,
                     Math.Round(currentMeasurement.Longitude, _precision).ToString(CultureInfo.InvariantCulture),
                     Math.Round(currentMeasurement.Latitude, _precision).ToString(CultureInfo.InvariantCulture),
@@ -359,31 +360,36 @@ MAX ODCHYLKY OD PRUMERU
                     Math.Round(currentMeasurement.Height - averagedCoordinate.Height, _precision).ToString(CultureInfo.InvariantCulture)
                 ];
 
-                stringBuilder.Append(string.Join("", diff.Select(d => d.PadLeft(padLeft))));
+                stringBuilder.Append(string.Join("", diff.Select(d => d.PadLeft(padConst))));
                 stringBuilder.Append(Environment.NewLine);
             }
 
-            stringBuilder.Append(new string('-', padLeft * 7));
+            stringBuilder.Append(new string('-', padConst * 7));
             stringBuilder.Append(Environment.NewLine);
+
+            var timeDiff = (currentMeasurements.Last().TimeEnd - currentMeasurements.First().TimeEnd).Duration();
 
             List<string> summary =
             [
                 averagedCoordinate.Name,
                 Math.Round(averagedCoordinate.Longitude, _precision).ToString(CultureInfo.InvariantCulture),
                 Math.Round(averagedCoordinate.Latitude, _precision).ToString(CultureInfo.InvariantCulture),
-                Math.Round(averagedCoordinate.Height, _precision).ToString(CultureInfo.InvariantCulture)
+                Math.Round(averagedCoordinate.Height, _precision).ToString(CultureInfo.InvariantCulture),
+                $"    Čas.odstup: {TimeSpanToString(timeDiff)}"
             ];
 
-            stringBuilder.Append(string.Join("", summary.Select(s => s.PadLeft(padLeft))));
+            stringBuilder.Append(string.Join("", summary.Select(s => s.PadLeft(padConst))));
             stringBuilder.Append(Environment.NewLine);
         }
 
         return stringBuilder.ToString();
     }
+    
+    private static string TimeSpanToString(TimeSpan timeSpan) => $"{timeSpan.Days} dnů {timeSpan.Hours:00}:{timeSpan.Minutes:00}:{timeSpan.Seconds:00}";
 
     private void CreateDocxProtocol(List<Measurement> measurements)
     {
-        var measurementTime = measurements.MaxBy(m => m.TimeEnd)!.TimeEnd;
+        var measurementTime = measurements.MaxBy(m => m.TimeEnd)?.TimeEnd;
         var maxPdop = measurements.MaxBy(m => m.Pdop)?.Pdop;
 
         var minIntervalTicks = long.MaxValue;
@@ -401,7 +407,7 @@ MAX ODCHYLKY OD PRUMERU
 
         var docxDict = new Dictionary<string, string>
         {
-            { "{lokalita}", _details.Lokalita ?? string.Empty },
+            { "{lokalita}", Lokalita.Text ?? string.Empty },
             { "{katastralniUzemi}", UzemiTextBox.Text ?? string.Empty },
             { "{okres}", Okres.Text ?? string.Empty },
             { "{zhotovitel}", _details.Zhotovitel ?? string.Empty },
@@ -412,9 +418,9 @@ MAX ODCHYLKY OD PRUMERU
             { "{typ}", _details.Typ ?? string.Empty },
             { "{cislo}", _details.Cislo ?? string.Empty },
             { "{anteny}", _details.Anteny ?? string.Empty },
-            { "{zamereniDatum}", measurementTime.ToString("dd.MM.yyyy") },
+            { "{zamereniDatum}", measurementTime?.ToString("dd.MM.yyyy") ?? string.Empty },
             { "{metoda}", measurements.FirstOrDefault()?.Metoda ?? string.Empty },
-            { "{sit}", (PouzitaStanice.SelectedItem as ComboBoxItem)?.Content as string ?? string.Empty },
+            { "{sit}", _details.PouzitaStanice ?? string.Empty },
             { "{pristupovyBod}", _details.PristupovyBod ?? string.Empty },
             { "{interval}", _details.IntervalZaznamu ?? string.Empty },
             { "{elevacniMaska}", _details.ElevacniMaska ?? string.Empty },
@@ -427,21 +433,21 @@ MAX ODCHYLKY OD PRUMERU
             { "{kontrolaPripojeni}", _details.KontrolaPripojeni ?? string.Empty },
             { "{transformacniPristup}", _details.TransformacniPostup ?? string.Empty },
             { "{transformaceZpracovatelskyProgram}", _details.TransformaceZpracovatelskyProgram ?? string.Empty },
-            { "{poznamky}", _details.Poznamky ?? string.Empty }
+            { "{poznamky}", Poznamky.Text ?? string.Empty }
         };
-        
+
         const string fileName = "protokol.docx";
         var outputFileName = OutputDocxPathTextBox.Text;
 
         if (string.IsNullOrWhiteSpace(outputFileName))
             throw new Exception("Zadejte výstupní soubory.");
-        
+
         File.Copy(Path.Combine("Resources", fileName), outputFileName, true);
 
         using var doc = WordprocessingDocument.Open(outputFileName, true);
         var mainPart = doc.MainDocumentPart;
         var body = mainPart?.Document.Body;
-        
+
         if (body == null)
             return;
 
@@ -449,16 +455,16 @@ MAX ODCHYLKY OD PRUMERU
         {
             foreach (var text in body.Descendants<Text>())
             {
-                if (!text.Text.Contains(key)) 
+                if (!text.Text.Contains(key))
                     continue;
                 var lines = value.Split(["\r\n", "\r", "\n"], StringSplitOptions.None);
-        
+
                 text.Text = "";
 
                 for (var i = 0; i < lines.Length; i++)
                 {
                     text.InsertBeforeSelf(new Text(lines[i]));
-                    
+
                     if (i < lines.Length - 1)
                         text.InsertBeforeSelf(new Break());
                 }
@@ -467,8 +473,8 @@ MAX ODCHYLKY OD PRUMERU
             }
         }
     }
-    
-    private List<string> MeasurementSelector(Measurement measurement)
+
+    private List<string> MeasurementSelector(Measurement measurement, int padConst)
     {
         var pdopSign = string.Empty;
 
@@ -476,15 +482,26 @@ MAX ODCHYLKY OD PRUMERU
             pdopSign = "*";
         if (measurement.Pdop > 40)
             pdopSign = "#";
+
+        var sit = measurement.Metoda;
         
+        if (measurement.Metoda.Length >= padConst)
+        {
+            sit = measurement.Metoda[..(padConst - 3)];
+            sit = $"{sit}..";
+        }
+
         return
         [
             measurement.Name,
             Math.Round(measurement.Longitude, _precision).ToString(CultureInfo.InvariantCulture),
             Math.Round(measurement.Latitude, _precision).ToString(CultureInfo.InvariantCulture),
             Math.Round(measurement.Height, _precision).ToString(CultureInfo.InvariantCulture),
-            $"{pdopSign}{measurement.Pdop}",
-            measurement.Metoda,
+            $"{pdopSign}{Math.Round(measurement.Pdop, _precision)}",
+            Math.Round(measurement.AccuracyY, _precision).ToString(CultureInfo.InvariantCulture),
+            Math.Round(measurement.AccuracyX, _precision).ToString(CultureInfo.InvariantCulture),
+            Math.Round(measurement.AccuracyZ, _precision).ToString(CultureInfo.InvariantCulture),
+            sit,
             measurement.SatellitesCount.ToString(),
             measurement.AntennaHeight.ToString(CultureInfo.InvariantCulture),
             measurement.TimeStart.ToString("dd.MM"),
@@ -494,32 +511,11 @@ MAX ODCHYLKY OD PRUMERU
         ];
     }
 
-    public void ChangeAccuracy(object sender, SelectionChangedEventArgs e)
-    {
-        if (PrecisionInput == null)
-            return;
-        
-        var item = e.AddedItems[0] as ComboBoxItem;
-        
-        if (item?.Content?.ToString() == "Lokální")
-        {
-            PrecisionInput.Minimum = 2;
-            PrecisionInput.Maximum = 3;
-            PrecisionInput.Value = 2;
-            
-            return;
-        }
-        
-        PrecisionInput.Minimum = 7;
-        PrecisionInput.Maximum = 10;
-        PrecisionInput.Value = 9;
-    }
-    
     private void OnFileDrop(object? sender, DragEventArgs e)
     {
-        if (sender is not TextBox textBox || !e.Data.Contains(DataFormats.FileNames)) 
+        if (sender is not TextBox textBox || !e.Data.Contains(DataFormats.FileNames))
             return;
-        
+
         var files = e.Data.GetFiles()?.Select(f => f.Name).ToList();
 
         // Assuming you want to set the text of the TextBox with the path of the first dropped file
@@ -528,13 +524,12 @@ MAX ODCHYLKY OD PRUMERU
             textBox.Text = files[0];
         }
     }
-    
+
     private void OnDrag(object? sender, DragEventArgs e)
     {
         if (e.Data.Contains(DataFormats.Files))
         {
             e.Handled = true;
-            
         }
     }
 
@@ -542,7 +537,7 @@ MAX ODCHYLKY OD PRUMERU
     {
         var detailsDialog = new DetailsWindow(_details);
         var details = await detailsDialog.ShowDialog<Details?>(this);
-        
+
         if (details != null)
         {
             _details = details;
@@ -556,46 +551,46 @@ MAX ODCHYLKY OD PRUMERU
             _triggerSelectionChanged = true;
             return;
         }
-        
+
         if (string.IsNullOrWhiteSpace(UzemiTextBox.Text))
         {
             SuggestionsListBox.IsVisible = false;
             return;
         }
-        
+
         SuggestionsListBox.IsVisible = true;
         var filteredUzemi = _localDatabase.FilterUzemi(UzemiTextBox.Text);
-        
+
         SuggestionsListBox.Items.Clear();
 
         foreach (var uzemi in filteredUzemi)
         {
             SuggestionsListBox.Items.Add(uzemi);
         }
-        
+
         SuggestionsListBox.IsVisible = SuggestionsListBox.Items.Any();
     }
 
     private bool _triggerSelectionChanged = true;
-    
+
     private void SuggestionsListBox_SelectionChanged(object _1, SelectionChangedEventArgs _2)
     {
         if (!_triggerSelectionChanged)
             return;
-        
-        if (SuggestionsListBox.SelectedItem is not string selectedText) 
+
+        if (SuggestionsListBox.SelectedItem is not string selectedText)
             return;
-        
+
         UzemiTextBox.Text = selectedText;
         SuggestionsListBox.IsVisible = false;
-        
+
         var okres = _localDatabase.GetOkresByUzemi(selectedText);
         Okres.Text = okres;
     }
-    
+
     private void InputTextBox_KeyDown(object _, KeyEventArgs keyEvent)
     {
-        if (!SuggestionsListBox.IsVisible) 
+        if (!SuggestionsListBox.IsVisible)
             return;
 
         if (keyEvent.Key is Key.Enter or Key.Down or Key.Up)

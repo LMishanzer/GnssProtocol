@@ -41,25 +41,6 @@
 
                 <Image Source="/Assets/3gon.png" Theme="" Width="200" Height="200" VerticalAlignment="Center" Margin="20" />
             </StackPanel>
-
-            <TextBlock Text="Přesnost (počet desetinných míst):" Margin="20 20 20 0" />
-            <NumericUpDown x:Name="PrecisionInput" Value="2" Minimum="2" Maximum="3" FormatString="0" Margin="20" />
-
-            <TextBlock Text="Typ souřadnic:" Margin="20 20 20 0" />
-            <ComboBox x:Name="CoordinatesType" SelectedIndex="0" Margin="20" SelectionChanged="ChangeAccuracy">
-                <ComboBoxItem Content="Lokální" />
-                <ComboBoxItem Content="Globální" />
-            </ComboBox>
-
-            <TextBlock Text="Použitá stanice nebo síť:" Margin="20 20 20 0" />
-            <ComboBox x:Name="PouzitaStanice" SelectedIndex="0" Margin="20">
-                <ComboBoxItem Content="CZEPOS" />
-                <ComboBoxItem Content="TOPNET" />
-                <ComboBoxItem Content="VRSnow" />
-                <ComboBoxItem Content="VESOG" />
-                <ComboBoxItem Content="GEOORBIT" />
-                <ComboBoxItem Content="Vlastní základnová stanice" />
-            </ComboBox>
             
             <TextBlock Text="Katastralní území" Margin="20 20 20 0" />
             <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top">
@@ -69,6 +50,12 @@
             
             <TextBlock Text="Okres:" Margin="20 20 20 0" />
             <TextBlock x:Name="Okres" Margin="20" />
+            
+            <TextBlock Text="Lokalita" Margin="20 20 20 0" />
+            <TextBox x:Name="Lokalita" Text="Lokalita" Margin="20 20 20 0" />
+            
+            <TextBlock Text="Poznámky" Margin="20 20 20 0" />
+            <TextBox x:Name="Poznamky" Text="" Margin="20 20 20 0" TextWrapping="Wrap" Height="100" AcceptsReturn="True" />
 
             <StackPanel Orientation="Horizontal">
                 <Button Name="ProcessButton" Content="Zpracovat" Click="Process" Margin="20" />

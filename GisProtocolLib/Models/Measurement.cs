@@ -11,6 +11,9 @@ public class Measurement
     public DateTime TimeEnd { get; init; }
     public string SolutionStatus { get; init; } = string.Empty;
     public decimal Pdop { get; init; }
+    public decimal AccuracyY { get; set; }
+    public decimal AccuracyX { get; set; }
+    public decimal AccuracyZ { get; set; }
     public string Code { get; init; } = string.Empty;
     public string Metoda { get; set; } = string.Empty;
     public int GpsSatellites { get; set; }
@@ -22,4 +25,14 @@ public class Measurement
     public string Description { get; init; } = string.Empty;
 
     public int SatellitesCount => Math.Max(SharedSats, GpsSatellites + GlonassSatellites + GalileoSatellites + BeidouSatellites + QzssSatellites);
+
+    public bool Validate() =>
+        Longitude != -1 &&
+        Latitude != -1 &&
+        Height != -1 &&
+        AntennaHeight != -1 &&
+        Pdop != -1 &&
+        AccuracyY != -1 &&
+        AccuracyX != -1 &&
+        AccuracyZ != -1;
 }
