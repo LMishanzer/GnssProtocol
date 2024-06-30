@@ -26,13 +26,21 @@ public class Measurement
 
     public int SatellitesCount => Math.Max(SharedSats, GpsSatellites + GlonassSatellites + GalileoSatellites + BeidouSatellites + QzssSatellites);
 
-    public bool Validate() =>
-        Longitude != -1 &&
-        Latitude != -1 &&
-        Height != -1 &&
-        AntennaHeight != -1 &&
-        Pdop != -1 &&
-        AccuracyY != -1 &&
-        AccuracyX != -1 &&
-        AccuracyZ != -1;
+    public bool Validate()
+    {
+        var originalLongitude = Longitude;
+        var originalLatitude = Latitude;
+        
+        Longitude = Math.Abs(Longitude);
+        Latitude = Math.Abs(Latitude);
+        
+        return originalLongitude != -1 &&
+               originalLatitude != -1 &&
+               Height != -1 &&
+               AntennaHeight != -1 &&
+               Pdop != -1 &&
+               AccuracyY != -1 &&
+               AccuracyX != -1 &&
+               AccuracyZ != -1;
+    }
 }

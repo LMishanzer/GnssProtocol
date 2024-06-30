@@ -54,9 +54,6 @@ public class NivelCsvReader : BaseCsvReader, ICsvReader
             position.Latitude = GetDecimal(csvReader, "X") ?? -1;
         }
 
-        position.Longitude = Math.Abs(position.Longitude);
-        position.Latitude = Math.Abs(position.Latitude);
-
         return position.Validate() ? position : null;
     }
 
@@ -65,7 +62,7 @@ public class NivelCsvReader : BaseCsvReader, ICsvReader
         var value = csvReader.GetField<string>(columnName);
         var beautifiedValue = value.Trim().Replace(",", ".");
 
-        return decimal.TryParse(beautifiedValue, out var parsed) ? parsed : null;
+        return decimal.TryParse(beautifiedValue, CultureInfo.InvariantCulture, out var parsed) ? parsed : null;
     }
 
     private static decimal CoordinatesToDegrees(string coordinate)
