@@ -125,7 +125,9 @@ public partial class MainWindow : Window
                 _ => throw new Exception("Neznámý typ technologie")
             };
 
-            var csvData = await csvReader.ReadData(filePath, isGlobal);
+            var delimiterValue = (Delimiter.SelectedItem as ComboBoxItem)?.Content as string;
+            
+            var csvData = await csvReader.ReadData(filePath, isGlobal, delimiterValue ?? ",");
             var measurements = csvData.Measurements;
 
             var (aggregatedPositions, differences) = PositionsHelper.AggregatePositions(measurements);

@@ -1,5 +1,6 @@
 using System.Globalization;
 using CsvHelper;
+using CsvHelper.Configuration;
 using GisProtocolLib.Models;
 
 namespace GisProtocolLib.Csv;
@@ -8,10 +9,13 @@ public abstract class BaseCsvReader
 {
     protected abstract string MainColumnName { get; }
     
-    public async Task<CsvData> ReadData(string filePath, bool isGlobal)
+    public async Task<CsvData> ReadData(string filePath, bool isGlobal, string delimiter = ",")
     {
         using var reader = new StreamReader(filePath);
-        using var csvReader = new CsvReader(reader, CultureInfo.InvariantCulture);
+        using var csvReader = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture)
+        {
+            Delimiter = delimiter
+        });
 
         var csvData = new CsvData();
 

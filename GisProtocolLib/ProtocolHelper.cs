@@ -19,29 +19,29 @@ public class ProtocolHelper
     {
         const int tablePadConst = 13;
         const int padConst = 16;
-        List<string> pointsHeaderFirstLine =  ["Bod č.", "Y", "X", "Z", "PDOP", "Přesnost", "Přesnost", "Přesnost", "Síť", "Počet",    "Anténa", "Datum", "Začátek", "Doba",   "Kod"];
-        List<string> pointsHeaderSecondLine = ["",       "",  "",  "",  "",      "Y",       "X",        "Z",        "",    "satelitů", "výška",  "",      "měření",  "měření", "bodu"];
+        List<string> pointsHeaderFirstLine =  ["Bod c.", "Y", "X", "Z", "PDOP", "Presnost", "Presnost", "Presnost", "Sit", "Pocet",    "Antena", "Datum", "Zacatek", "Doba",   "Kod"];
+        List<string> pointsHeaderSecondLine = ["",       "",  "",  "",  "",      "Y",       "X",        "Z",        "",    "satelitu", "vyska",  "",      "mereni",  "mereni", "bodu"];
 
         var pointsValues = measurements.Select(measurement => MeasurementSelector(measurement, tablePadConst));
 
         var protocol =
             $"""
              --------------------------------------
-             PROTOKOL GNSS (RTK) MĚŘENÍ
+             PROTOKOL GNSS (RTK) MERENI
              --------------------------------------
 
              GNSS Senzor: {_details.Sensor}
-             Software pro transformaci mezi ETRS89 a S-JTSK pomocí zpřesněné globální transformace: {_details.TransSoft}
-             Polní software: {_details.PolSoft}
+             Software pro transformaci mezi ETRS89 a S-JTSK pomoci zpresnene globalni transformace: {_details.TransSoft}
+             Polni software: {_details.PolSoft}
              Projekce: {_details.Projection}
              Model geoidu: {_details.GeoModel}
              Firma: {_details.Zhotovitel}
-             Měřil: {_details.Zpracoval}
+             Meril: {_details.Zpracoval}
 
-             Pro výpočet S-JTSK souřadnic a Bpv výšek byla použitá zpřesněná globální transformace mezi ETRS89 a S-JTSK, realizace od {_details.RealizationFrom}.
+             Pro vypocet S-JTSK souradnic a Bpv vysek byla pouzita zpresnena globalni transformace mezi ETRS89 a S-JTSK, realizace od {_details.RealizationFrom}.
 
              -------------------------
-             POUŽITÉ A MĚŘENÉ BODY
+             POUZITE A MERENE BODY
              -------------------------
 
              {string.Join(string.Empty, pointsHeaderFirstLine.Select(p => p.PadLeft(tablePadConst)))}
@@ -50,28 +50,28 @@ public class ProtocolHelper
              {string.Join(Environment.NewLine, pointsValues.Select(p => string.Join("", p.Select(s => s.PadLeft(tablePadConst)))))}
 
              -------------------------
-             PRŮMĚROVÁNÍ BODŮ
+             PRUMEROVANI BODU
              -------------------------
 
-             {string.Join(string.Empty, new[] { "Číslo bodu", "Y", "X", "Z", "dY", "dX", "dZ" }.Select(s => s.PadLeft(padConst)))}
+             {string.Join(string.Empty, new[] { "Cislo bodu", "Y", "X", "Z", "dY", "dX", "dZ" }.Select(s => s.PadLeft(padConst)))}
                  
              {Prumerovani(measurements, averagedCoordinates, padConst)}
 
              -------------------------
-             ZPRŮMĚROVANÉ BODY
+             ZPRUMEROVANE BODY
              -------------------------
 
-             {string.Join(string.Empty, new[] { "Číslo bodu", "Y", "X", "Z", "Kod" }.Select(s => s.PadLeft(padConst)))}
+             {string.Join(string.Empty, new[] { "Cislo bodu", "Y", "X", "Z", "Kod" }.Select(s => s.PadLeft(padConst)))}
 
              {string.Join(Environment.NewLine, averagedCoordinates.Select(c =>
                  $"{c.Name,padConst}{Math.Round(c.Longitude, _precision),padConst}{Math.Round(c.Latitude, _precision),padConst}" +
                  $"{Math.Round(c.Height, _precision),padConst}{c.Code,padConst}"))}
 
              -------------------------
-             MAX ODCHÝLKY OD PRŮMERU
+             MAX ODCHYLKY OD PRUMERU
              -------------------------
 
-             {string.Join(string.Empty, new[] { "Číslo bodu", "dY", "dX", "dZ", "dM", "delta čas" }.Select(s => s.PadLeft(padConst)))}
+             {string.Join(string.Empty, new[] { "Cislo bodu", "dY", "dX", "dZ", "dM", "delta cas" }.Select(s => s.PadLeft(padConst)))}
 
              {string.Join(Environment.NewLine, differences.Select(c =>
                  $"{c.Name,padConst}{Math.Round(c.Longitude, _precision),padConst}{Math.Round(c.Latitude, _precision),padConst}" +
@@ -126,7 +126,7 @@ public class ProtocolHelper
                 Math.Round(averagedCoordinate.Longitude, _precision).ToString(CultureInfo.InvariantCulture),
                 Math.Round(averagedCoordinate.Latitude, _precision).ToString(CultureInfo.InvariantCulture),
                 Math.Round(averagedCoordinate.Height, _precision).ToString(CultureInfo.InvariantCulture),
-                $"    Čas.odstup: {TimeSpanToString(timeDiff)}"
+                $"    Cas.odstup: {TimeSpanToString(timeDiff)}"
             ];
 
             stringBuilder.Append(string.Join("", summary.Select(s => s.PadLeft(padConst))));
@@ -161,7 +161,7 @@ public class ProtocolHelper
             Math.Round(measurement.Longitude, _precision).ToString(CultureInfo.InvariantCulture),
             Math.Round(measurement.Latitude, _precision).ToString(CultureInfo.InvariantCulture),
             Math.Round(measurement.Height, _precision).ToString(CultureInfo.InvariantCulture),
-            $"{pdopSign}{Math.Round(measurement.Pdop, _precision)}",
+            $"{pdopSign}{Math.Round(measurement.Pdop, _precision).ToString(CultureInfo.InvariantCulture)}",
             Math.Round(measurement.AccuracyY, _precision).ToString(CultureInfo.InvariantCulture),
             Math.Round(measurement.AccuracyX, _precision).ToString(CultureInfo.InvariantCulture),
             Math.Round(measurement.AccuracyZ, _precision).ToString(CultureInfo.InvariantCulture),
