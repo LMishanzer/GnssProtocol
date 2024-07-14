@@ -6,11 +6,11 @@ namespace PointAverager.Views;
 
 public partial class DetailsWindow : Window
 {
-    public DetailsWindow(Details details)
+    public DetailsWindow(FormDetails formDetails)
     {
         InitializeComponent();
 
-        SetFields(details);
+        SetFields(formDetails);
     }
     
     public void ChangeAccuracy(object sender, SelectionChangedEventArgs e)
@@ -34,39 +34,39 @@ public partial class DetailsWindow : Window
         PrecisionInput.Value = 9;
     }
 
-    private void SetFields(Details details)
+    private void SetFields(FormDetails formDetails)
     {
-        Sensor.Text = details.Sensor; 
-        TransSoft.Text = details.TransSoft; 
-        PolSoft.Text = details.PolSoft; 
-        Projection.Text = details.Projection; 
-        GeoModel.Text = details.GeoModel; 
-        RealizationFrom.Text = details.RealizationFrom;
-        Zhotovitel.Text = details.Zhotovitel; 
-        Zpracoval.Text = details.Zpracoval; 
-        Prijemace.Text = details.Prijemace; 
-        Vyrobce.Text = details.Vyrobce; 
-        Typ.Text = details.Typ; 
-        Cislo.Text = details.Cislo; 
-        Anteny.Text = details.Anteny; 
-        PristupovyBod.Text = details.PristupovyBod; 
-        IntervalZaznamu.Text = details.IntervalZaznamu; 
-        ElevacniMaska.Text = details.ElevacniMaska; 
-        VyskaAnteny.Text = details.VyskaAnteny; 
-        PocetZameneniBodu.Text = details.PocetZameneniBodu; 
-        ZpracovatelskyProgram.Text = details.ZpracovatelskyProgram; 
-        SouradniceNepripojeny.Text = details.SouradniceNepripojeny; 
-        KontrolaPripojeni.Text = details.KontrolaPripojeni; 
-        TransformacniPostup.Text = details.TransformacniPostup; 
-        TransformaceZpracovatelskyProgram.Text = details.TransformaceZpracovatelskyProgram; 
-        PrecisionInput.Value = details.PrecisionInput;
-        CoordinatesType.SelectedIndex = details.CoordinatesTypeIndex ?? 0;
-        PouzitaStanice.SelectedIndex = details.PouzitaStaniceIndex ?? 0;
+        Sensor.Text = formDetails.Sensor; 
+        TransSoft.Text = formDetails.TransSoft; 
+        PolSoft.Text = formDetails.PolSoft; 
+        Projection.Text = formDetails.Projection; 
+        GeoModel.Text = formDetails.GeoModel; 
+        RealizationFrom.Text = formDetails.RealizationFrom;
+        Zhotovitel.Text = formDetails.Zhotovitel; 
+        Zpracoval.Text = formDetails.Zpracoval; 
+        Prijemace.Text = formDetails.Prijemace; 
+        Vyrobce.Text = formDetails.Vyrobce; 
+        Typ.Text = formDetails.Typ; 
+        Cislo.Text = formDetails.Cislo; 
+        Anteny.Text = formDetails.Anteny; 
+        PristupovyBod.Text = formDetails.PristupovyBod; 
+        IntervalZaznamu.Text = formDetails.IntervalZaznamu; 
+        ElevacniMaska.Text = formDetails.ElevacniMaska; 
+        VyskaAnteny.Text = formDetails.VyskaAnteny; 
+        PocetZameneniBodu.Text = formDetails.PocetZameneniBodu; 
+        ZpracovatelskyProgram.Text = formDetails.ZpracovatelskyProgram; 
+        SouradniceNepripojeny.Text = formDetails.SouradniceNepripojeny; 
+        KontrolaPripojeni.Text = formDetails.KontrolaPripojeni; 
+        TransformacniPostup.Text = formDetails.TransformacniPostup; 
+        TransformaceZpracovatelskyProgram.Text = formDetails.TransformaceZpracovatelskyProgram; 
+        PrecisionInput.Value = formDetails.PrecisionInput;
+        CoordinatesType.SelectedIndex = formDetails.CoordinatesTypeIndex ?? 0;
+        PouzitaStanice.SelectedIndex = formDetails.PouzitaStaniceIndex ?? 0;
     }
 
     private void OnOkButtonClick(object? _1, RoutedEventArgs _2)
     {
-        var ret = new Details
+        var ret = new FormDetails
         {
             Sensor = Sensor.Text ?? string.Empty,
             TransSoft = TransSoft.Text ?? string.Empty,

@@ -2,16 +2,16 @@ using System.Globalization;
 using System.Text;
 using GisProtocolLib.Models;
 
-namespace GisProtocolLib;
+namespace GisProtocolLib.Protocols.Text;
 
-public class ProtocolHelper
+public class TextProtocolHelper
 {
-    private readonly Details _details;
+    private readonly FormDetails _formDetails;
     private readonly int _precision;
 
-    public ProtocolHelper(Details details, int precision)
+    public TextProtocolHelper(FormDetails formDetails, int precision)
     {
-        _details = details;
+        _formDetails = formDetails;
         _precision = precision;
     }
     
@@ -19,8 +19,8 @@ public class ProtocolHelper
     {
         const int tablePadConst = 13;
         const int padConst = 16;
-        List<string> pointsHeaderFirstLine =  ["Bod c.", "Y", "X", "Z", "PDOP", "Presnost", "Presnost", "Presnost", "Sit", "Pocet",    "Antena", "Datum", "Zacatek", "Doba",   "Kod"];
-        List<string> pointsHeaderSecondLine = ["",       "",  "",  "",  "",      "Y",       "X",        "Z",        "",    "satelitu", "vyska",  "",      "mereni",  "mereni", "bodu"];
+        List<string> pointsHeaderFirstLine =  ["Bod c.", "Y", "X", "Z", "PDOP", "Presnost", "Presnost", "Presnost", "Sit", "Pocet",    "Antena",      "Datum", "Zacatek", "Doba",   "Kod"];
+        List<string> pointsHeaderSecondLine = ["",       "",  "",  "",  "",      "Y",       "X",        "Z",        "",    "satelitu", "vyska (FC)",  "",      "mereni",  "mereni", "bodu"];
 
         var pointsValues = measurements.Select(measurement => MeasurementSelector(measurement, tablePadConst));
 
@@ -30,15 +30,15 @@ public class ProtocolHelper
              PROTOKOL GNSS (RTK) MERENI
              --------------------------------------
 
-             GNSS Senzor: {_details.Sensor}
-             Software pro transformaci mezi ETRS89 a S-JTSK pomoci zpresnene globalni transformace: {_details.TransSoft}
-             Polni software: {_details.PolSoft}
-             Projekce: {_details.Projection}
-             Model geoidu: {_details.GeoModel}
-             Firma: {_details.Zhotovitel}
-             Meril: {_details.Zpracoval}
+             GNSS Senzor: {_formDetails.Sensor}
+             Software pro transformaci mezi ETRS89 a S-JTSK pomoci zpresnene globalni transformace: {_formDetails.TransSoft}
+             Polni software: {_formDetails.PolSoft}
+             Projekce: {_formDetails.Projection}
+             Model geoidu: {_formDetails.GeoModel}
+             Firma: {_formDetails.Zhotovitel}
+             Meril: {_formDetails.Zpracoval}
 
-             Pro vypocet S-JTSK souradnic a Bpv vysek byla pouzita zpresnena globalni transformace mezi ETRS89 a S-JTSK, realizace od {_details.RealizationFrom}.
+             Pro vypocet S-JTSK souradnic a Bpv vysek byla pouzita zpresnena globalni transformace mezi ETRS89 a S-JTSK, realizace od {_formDetails.RealizationFrom}.
 
              -------------------------
              POUZITE A MERENE BODY

@@ -10,36 +10,37 @@
         Title="GNSS_protokol"
         Background="Black">
 
-    <ScrollViewer>
-        <StackPanel>
-            <StackPanel Orientation="Horizontal">
-                <StackPanel HorizontalAlignment="Stretch" MinWidth="600">
-                    <TextBlock Text="Typ technologie" Margin="20 20 20 0" />
-                    <ComboBox x:Name="TypTechnologie" SelectedIndex="0" Margin="20">
+    <ScrollViewer Margin="10">
+        <StackPanel Spacing="10">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <StackPanel HorizontalAlignment="Stretch" MinWidth="600" Spacing="10">
+
+                    <TextBlock Text="Typ technologie" Margin="0 0 0 10" />
+                    <ComboBox x:Name="TypTechnologie" SelectedIndex="0" Margin="0 0 0 10">
                         <ComboBoxItem Content="EMLID" />
                         <ComboBoxItem Content="NIVEL Point" />
                     </ComboBox>
                     
-                    <TextBlock Text="CSV soubor:" Margin="20 20 20 0" />
-                    <Grid Margin="20" ColumnDefinitions="*,Auto">
+                    <TextBlock Text="CSV soubor:" Margin="0 0 0 10" />
+                    <Grid Margin="0 0 0 10" ColumnDefinitions="*,Auto" >
                         <TextBox x:Name="InputPathTextBox" Margin="0,0,20,0" HorizontalAlignment="Stretch" />
                         <Button Grid.Column="1" Content="Vybrat soubor..." Click="OnInputButtonClick" />
                     </Grid>
 
-                    <TextBlock Text="Výstupní *.txt soubor:" Margin="20 20 20 0" />
-                    <Grid Margin="20" ColumnDefinitions="*,Auto">
+                    <TextBlock Text="Výstupní *.txt soubor:" Margin="0 0 0 10" />
+                    <Grid Margin="0 0 0 10" ColumnDefinitions="*,Auto">
                         <TextBox x:Name="OutputPathTextBox" Margin="0,0,20,0" HorizontalAlignment="Stretch" />
                         <Button Grid.Column="1" Content="Vybrat soubor..." Click="OnOutputButtonClick" />
                     </Grid>
                     
-                    <TextBlock Text="Výstupní *.docx soubor:" Margin="20 20 20 0" />
-                    <Grid Margin="20" ColumnDefinitions="*,Auto">
+                    <TextBlock Text="Výstupní *.docx soubor:" Margin="0 0 0 10" />
+                    <Grid Margin="0 0 0 10" ColumnDefinitions="*,Auto">
                         <TextBox x:Name="OutputDocxPathTextBox" Margin="0,0,20,0" HorizontalAlignment="Stretch" />
                         <Button Grid.Column="1" Content="Vybrat soubor..." Click="OnDocxOutputButtonClick" />
                     </Grid>
                     
-                    <TextBlock Text="CSV rozdělovač:" Margin="20 20 20 0" />
-                    <ComboBox x:Name="Delimiter" SelectedIndex="0" Margin="20">
+                    <TextBlock Text="CSV rozdělovač:" Margin="0 0 0 10" />
+                    <ComboBox x:Name="Delimiter" SelectedIndex="0" Margin="0 0 0 10">
                         <ComboBoxItem Content="," />
                         <ComboBoxItem Content=";" />
                     </ComboBox>
@@ -48,28 +49,28 @@
                 <Image Source="/Assets/3gon.png" Theme="" Width="200" Height="200" VerticalAlignment="Center" Margin="20" />
             </StackPanel>
             
-            <TextBlock Text="Katastralní území" Margin="20 20 20 0" />
-            <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top">
-                <TextBox x:Name="UzemiTextBox" Width="200" Margin="20 20 20 0" KeyUp="InputTextBox_KeyUp" KeyDown="InputTextBox_KeyDown" />
-                <ListBox x:Name="SuggestionsListBox" Width="200" Margin="20 0 20 20" IsVisible="False" SelectionChanged="SuggestionsListBox_SelectionChanged" />
+            <TextBlock Text="Katastralní území" Margin="0 0 0 10" />
+            <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Spacing="10">
+                <TextBox x:Name="UzemiTextBox" Width="200" Margin="0 0 0 10" KeyUp="InputTextBox_KeyUp" KeyDown="InputTextBox_KeyDown" />
+                <ListBox x:Name="SuggestionsListBox" Width="200" Margin="0 0 0 10" IsVisible="False" SelectionChanged="SuggestionsListBox_SelectionChanged" />
             </StackPanel>
             
-            <TextBlock Text="Okres:" Margin="20 20 20 0" />
-            <TextBlock x:Name="Okres" Margin="20" />
+            <TextBlock Text="Okres:" Margin="0 0 0 10" />
+            <TextBlock x:Name="Okres" Margin="0 0 0 10" />
             
-            <TextBlock Text="Lokalita" Margin="20 20 20 0" />
-            <TextBox x:Name="Lokalita" Text="Lokalita" Margin="20 20 20 0" />
+            <TextBlock Text="Lokalita" Margin="0 0 0 10" />
+            <TextBox x:Name="Lokalita" Text="Lokalita" Margin="0 0 0 10" />
             
-            <TextBlock Text="Poznámky" Margin="20 20 20 0" />
-            <TextBox x:Name="Poznamky" Text="" Margin="20 20 20 0" TextWrapping="Wrap" Height="100" AcceptsReturn="True" />
+            <TextBlock Text="Poznámky" Margin="0 0 0 10" />
+            <TextBox x:Name="Poznamky" Text="" Margin="0 0 0 10" TextWrapping="Wrap" Height="100" AcceptsReturn="True" />
 
-            <StackPanel Orientation="Horizontal">
-                <Button Name="ProcessButton" Content="Zpracovat" Click="Process" Margin="20" />
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <Button Name="ProcessButton" Content="Zpracovat" Click="Process" Margin="0" />
                 
-                <Button Name="OpenDetails" Content="Detaily" Click="OpenDetailsClick" Margin="20" />
+                <Button Name="OpenDetails" Content="Detaily" Click="OpenDetailsClick" Margin="0" />
             </StackPanel>
 
-            <TextBlock Name="Info" Margin="20" />
+            <TextBlock Name="Info" Margin="0 0 0 10" />
         </StackPanel>
     </ScrollViewer>
 

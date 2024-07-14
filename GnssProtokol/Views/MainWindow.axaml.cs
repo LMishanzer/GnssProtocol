@@ -7,12 +7,12 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
-using DocumentFormat.OpenXml.Packaging;
-using DocumentFormat.OpenXml.Wordprocessing;
 using GisProtocolLib;
 using GisProtocolLib.Csv;
 using GisProtocolLib.Models;
-using Newtonsoft.Json;
+using GisProtocolLib.Protocols.Docx;
+using GisProtocolLib.Protocols.Text;
+using GisProtocolLib.State;
 using ComboBoxItem = Avalonia.Controls.ComboBoxItem;
 
 namespace PointAverager.Views;
@@ -20,7 +20,7 @@ namespace PointAverager.Views;
 public partial class MainWindow : Window
 {
     private readonly LocalDatabase _localDatabase;
-    private Details _details = new();
+    private FormDetails _formDetails = new();
 
     public MainWindow()
     {
@@ -45,13 +45,13 @@ public partial class MainWindow : Window
         var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
             AllowMultiple = false,
-            FileTypeFilter = new FilePickerFileType[]
-            {
+            FileTypeFilter =
+            [
                 new("CSV Files")
                 {
                     Patterns = CsvPatterns
                 }
-            }
+            ]
         });
 
         if (files.Any())
@@ -114,8 +114,8 @@ public partial class MainWindow : Window
         try
         {
             ProcessButton.IsEnabled = false;
-            var isGlobal = _details.CoordinatesType == "Globální";
-            _precision = _details.PrecisionInput ?? 2;
+            var isGlobal = _formDetails.CoordinatesType == "Globální";
+            _precision = _formDetails.PrecisionInput ?? 2;
 
             var typTechnologie = (TypTechnologie.SelectedItem as ComboBoxItem)?.Content as string ?? string.Empty;
             ICsvReader csvReader = typTechnologie switch
@@ -132,14 +132,24 @@ public partial class MainWindow : Window
 
             var (aggregatedPositions, differences) = PositionsHelper.AggregatePositions(measurements);
 
-            var protocolHelper = new ProtocolHelper(_details, _precision);
+            var protocolHelper = new TextProtocolHelper(_formDetails, _precision);
             var textToWrite = protocolHelper.CreateProtocol(measurements, aggregatedPositions, differences);
 
             var outputFile = OutputPathTextBox.Text ?? string.Empty;
 
             await File.WriteAllTextAsync(outputFile, textToWrite);
 
-            CreateDocxProtocol(measurements);
+            var docxProtocolHelper = new DocxProtocolHelper(new DocxDetails
+            {
+                FormDetails = _formDetails,
+                Lokalita = Lokalita.Text,
+                Okres = Okres.Text,
+                OutputDocxPathTextBox = OutputPathTextBox.Text,
+                Poznamky = Poznamky.Text,
+                UzemiTextBox = UzemiTextBox.Text
+            });
+
+            docxProtocolHelper.CreateProtocol(measurements);
 
             Info.Text = GetStatus(csvData.UnreadMeasurementNames);
         }
@@ -179,8 +189,6 @@ public partial class MainWindow : Window
         return stringBuilder.ToString();
     }
 
-    private const string StateFileName = "state.json";
-
     private async void SaveState()
     {
         var state = new FormState
@@ -189,49 +197,42 @@ public partial class MainWindow : Window
             InputFile = InputPathTextBox.Text,
             OutputFile = OutputPathTextBox.Text,
             OutputDocxFile = OutputDocxPathTextBox.Text,
-            Precision = _details.PrecisionInput,
-            CoordinatesTypeIndex = _details.CoordinatesTypeIndex,
-            PouzitaStaniceIndex = _details.PouzitaStaniceIndex,
-            Sensor = _details.Sensor,
-            TransSoft = _details.TransSoft,
-            PolSoft = _details.PolSoft,
-            Projection = _details.Projection,
-            GeoModel = _details.GeoModel,
-            RealizationFrom = _details.RealizationFrom,
+            Precision = _formDetails.PrecisionInput,
+            CoordinatesTypeIndex = _formDetails.CoordinatesTypeIndex,
+            PouzitaStaniceIndex = _formDetails.PouzitaStaniceIndex,
+            Sensor = _formDetails.Sensor,
+            TransSoft = _formDetails.TransSoft,
+            PolSoft = _formDetails.PolSoft,
+            Projection = _formDetails.Projection,
+            GeoModel = _formDetails.GeoModel,
+            RealizationFrom = _formDetails.RealizationFrom,
             Lokalita = Lokalita.Text,
-            Zhotovitel = _details.Zhotovitel,
-            Zpracoval = _details.Zpracoval,
-            Prijimace = _details.Prijemace,
-            Vyrobce = _details.Vyrobce,
-            Typ = _details.Typ,
-            Cislo = _details.Cislo,
-            Anteny = _details.Anteny,
-            PristupovyBod = _details.PristupovyBod,
-            IntervalZaznamu = _details.IntervalZaznamu,
-            ElevacniMaska = _details.ElevacniMaska,
-            VyskaAnteny = _details.VyskaAnteny,
-            PocetZameneniBodu = _details.PocetZameneniBodu,
-            ZpracovatelskyProgram = _details.ZpracovatelskyProgram,
-            SouradniceNepripojeny = _details.SouradniceNepripojeny,
-            KontrolaPripojeni = _details.KontrolaPripojeni,
-            TransformacniPostup = _details.TransformacniPostup,
-            TransformaceZpracovatelskyProgram = _details.TransformaceZpracovatelskyProgram,
+            Zhotovitel = _formDetails.Zhotovitel,
+            Zpracoval = _formDetails.Zpracoval,
+            Prijimace = _formDetails.Prijemace,
+            Vyrobce = _formDetails.Vyrobce,
+            Typ = _formDetails.Typ,
+            Cislo = _formDetails.Cislo,
+            Anteny = _formDetails.Anteny,
+            PristupovyBod = _formDetails.PristupovyBod,
+            IntervalZaznamu = _formDetails.IntervalZaznamu,
+            ElevacniMaska = _formDetails.ElevacniMaska,
+            VyskaAnteny = _formDetails.VyskaAnteny,
+            PocetZameneniBodu = _formDetails.PocetZameneniBodu,
+            ZpracovatelskyProgram = _formDetails.ZpracovatelskyProgram,
+            SouradniceNepripojeny = _formDetails.SouradniceNepripojeny,
+            KontrolaPripojeni = _formDetails.KontrolaPripojeni,
+            TransformacniPostup = _formDetails.TransformacniPostup,
+            TransformaceZpracovatelskyProgram = _formDetails.TransformaceZpracovatelskyProgram,
             Poznamky = Poznamky.Text
         };
 
-        await File.WriteAllTextAsync(StateFileName, JsonConvert.SerializeObject(state));
+        await StateManager.SaveState(state: state);
     }
 
     private async void RestoreState()
     {
-        if (!File.Exists(StateFileName))
-            return;
-
-        var text = await File.ReadAllTextAsync(StateFileName);
-        var state = JsonConvert.DeserializeObject<FormState>(text);
-
-        if (state == null)
-            return;
+        var state = await StateManager.RestoreState();
 
         TypTechnologie.SelectedIndex = state.TypTechnologieIndex;
         InputPathTextBox.Text = state.InputFile;
@@ -239,119 +240,32 @@ public partial class MainWindow : Window
         OutputDocxPathTextBox.Text = state.OutputDocxFile;
         Lokalita.Text = state.Lokalita;
         Poznamky.Text = state.Poznamky;
-        _details.PrecisionInput = state.Precision;
-        _details.CoordinatesTypeIndex = state.CoordinatesTypeIndex ?? 0;
-        _details.PouzitaStaniceIndex = state.PouzitaStaniceIndex ?? 0;
-        _details.Sensor = state.Sensor;
-        _details.TransSoft = state.TransSoft;
-        _details.PolSoft = state.PolSoft;
-        _details.Projection = state.Projection;
-        _details.GeoModel = state.GeoModel;
-        _details.RealizationFrom = state.RealizationFrom;
-        _details.Zhotovitel = state.Zhotovitel;
-        _details.Zpracoval = state.Zpracoval;
-        _details.Prijemace = state.Prijimace;
-        _details.Vyrobce = state.Vyrobce;
-        _details.Typ = state.Typ;
-        _details.Cislo = state.Cislo;
-        _details.Anteny = state.Anteny;
-        _details.PristupovyBod = state.PristupovyBod;
-        _details.IntervalZaznamu = state.IntervalZaznamu;
-        _details.ElevacniMaska = state.ElevacniMaska;
-        _details.VyskaAnteny = state.VyskaAnteny;
-        _details.PocetZameneniBodu = state.PocetZameneniBodu;
-        _details.ZpracovatelskyProgram = state.ZpracovatelskyProgram;
-        _details.SouradniceNepripojeny = state.SouradniceNepripojeny;
-        _details.KontrolaPripojeni = state.KontrolaPripojeni;
-        _details.TransformacniPostup = state.TransformacniPostup;
-        _details.TransformaceZpracovatelskyProgram = state.TransformaceZpracovatelskyProgram;
-    }
-
-    private void CreateDocxProtocol(List<Measurement> measurements)
-    {
-        var measurementTime = measurements.MaxBy(m => m.TimeEnd)?.TimeEnd;
-        var maxPdop = measurements.MaxBy(m => m.Pdop)?.Pdop;
-
-        var minIntervalTicks = long.MaxValue;
-
-        foreach (var measurement1 in measurements)
-        {
-            foreach (var measurement2 in measurements)
-            {
-                if (measurement1 != measurement2 && minIntervalTicks > Math.Abs(measurement1.TimeEnd.Ticks - measurement2.TimeEnd.Ticks))
-                    minIntervalTicks = Math.Abs(measurement1.TimeEnd.Ticks - measurement2.TimeEnd.Ticks);
-            }
-        }
-
-        var minInterval = TimeSpan.FromTicks(minIntervalTicks);
-
-        var docxDict = new Dictionary<string, string>
-        {
-            { "{lokalita}", Lokalita.Text ?? string.Empty },
-            { "{katastralniUzemi}", UzemiTextBox.Text ?? string.Empty },
-            { "{okres}", Okres.Text ?? string.Empty },
-            { "{zhotovitel}", _details.Zhotovitel ?? string.Empty },
-            { "{vypracoval}", _details.Zpracoval ?? string.Empty },
-            { "{dne}", DateTime.Now.ToString("dd.MM.yyyy") },
-            { "{prijimace}", _details.Prijemace ?? string.Empty },
-            { "{vyrobce}", _details.Vyrobce ?? string.Empty },
-            { "{typ}", _details.Typ ?? string.Empty },
-            { "{cislo}", _details.Cislo ?? string.Empty },
-            { "{anteny}", _details.Anteny ?? string.Empty },
-            { "{zamereniDatum}", measurementTime?.ToString("dd.MM.yyyy") ?? string.Empty },
-            { "{metoda}", measurements.FirstOrDefault()?.Metoda ?? string.Empty },
-            { "{sit}", _details.PouzitaStanice ?? string.Empty },
-            { "{pristupovyBod}", _details.PristupovyBod ?? string.Empty },
-            { "{interval}", _details.IntervalZaznamu ?? string.Empty },
-            { "{elevacniMaska}", _details.ElevacniMaska ?? string.Empty },
-            { "{vyskaAntenyVztazena}", _details.VyskaAnteny ?? string.Empty },
-            { "{minimalniDoba}", $"{minInterval.Seconds}s" },
-            { "{maxPdop}", maxPdop?.ToString() ?? string.Empty },
-            { "{nejmensiPocet}", _details.PocetZameneniBodu ?? string.Empty },
-            { "{zpracovatelskyProgram}", _details.ZpracovatelskyProgram ?? string.Empty },
-            { "{souradnicePripojeny}", _details.SouradniceNepripojeny ?? string.Empty },
-            { "{kontrolaPripojeni}", _details.KontrolaPripojeni ?? string.Empty },
-            { "{transformacniPristup}", _details.TransformacniPostup ?? string.Empty },
-            { "{transformaceZpracovatelskyProgram}", _details.TransformaceZpracovatelskyProgram ?? string.Empty },
-            { "{poznamky}", Poznamky.Text ?? string.Empty }
-        };
-
-        const string fileName = "protokol.docx";
-        var outputFileName = OutputDocxPathTextBox.Text;
-
-        if (string.IsNullOrWhiteSpace(outputFileName))
-            throw new Exception("Zadejte výstupní soubory.");
-
-        File.Copy(Path.Combine("Resources", fileName), outputFileName, true);
-
-        using var doc = WordprocessingDocument.Open(outputFileName, true);
-        var mainPart = doc.MainDocumentPart;
-        var body = mainPart?.Document.Body;
-
-        if (body == null)
-            return;
-
-        foreach (var (key, value) in docxDict)
-        {
-            foreach (var text in body.Descendants<Text>())
-            {
-                if (!text.Text.Contains(key))
-                    continue;
-                var lines = value.Split(["\r\n", "\r", "\n"], StringSplitOptions.None);
-
-                text.Text = "";
-
-                for (var i = 0; i < lines.Length; i++)
-                {
-                    text.InsertBeforeSelf(new Text(lines[i]));
-
-                    if (i < lines.Length - 1)
-                        text.InsertBeforeSelf(new Break());
-                }
-
-                text.Remove();
-            }
-        }
+        _formDetails.PrecisionInput = state.Precision;
+        _formDetails.CoordinatesTypeIndex = state.CoordinatesTypeIndex ?? 0;
+        _formDetails.PouzitaStaniceIndex = state.PouzitaStaniceIndex ?? 0;
+        _formDetails.Sensor = state.Sensor;
+        _formDetails.TransSoft = state.TransSoft;
+        _formDetails.PolSoft = state.PolSoft;
+        _formDetails.Projection = state.Projection;
+        _formDetails.GeoModel = state.GeoModel;
+        _formDetails.RealizationFrom = state.RealizationFrom;
+        _formDetails.Zhotovitel = state.Zhotovitel;
+        _formDetails.Zpracoval = state.Zpracoval;
+        _formDetails.Prijemace = state.Prijimace;
+        _formDetails.Vyrobce = state.Vyrobce;
+        _formDetails.Typ = state.Typ;
+        _formDetails.Cislo = state.Cislo;
+        _formDetails.Anteny = state.Anteny;
+        _formDetails.PristupovyBod = state.PristupovyBod;
+        _formDetails.IntervalZaznamu = state.IntervalZaznamu;
+        _formDetails.ElevacniMaska = state.ElevacniMaska;
+        _formDetails.VyskaAnteny = state.VyskaAnteny;
+        _formDetails.PocetZameneniBodu = state.PocetZameneniBodu;
+        _formDetails.ZpracovatelskyProgram = state.ZpracovatelskyProgram;
+        _formDetails.SouradniceNepripojeny = state.SouradniceNepripojeny;
+        _formDetails.KontrolaPripojeni = state.KontrolaPripojeni;
+        _formDetails.TransformacniPostup = state.TransformacniPostup;
+        _formDetails.TransformaceZpracovatelskyProgram = state.TransformaceZpracovatelskyProgram;
     }
 
     private void OnFileDrop(object? sender, DragEventArgs e)
@@ -378,12 +292,12 @@ public partial class MainWindow : Window
 
     private async void OpenDetailsClick(object? _1, RoutedEventArgs _2)
     {
-        var detailsDialog = new DetailsWindow(_details);
-        var details = await detailsDialog.ShowDialog<Details?>(this);
+        var detailsDialog = new DetailsWindow(_formDetails);
+        var details = await detailsDialog.ShowDialog<FormDetails?>(this);
 
         if (details != null)
         {
-            _details = details;
+            _formDetails = details;
         }
     }
 

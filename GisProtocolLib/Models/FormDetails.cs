@@ -1,6 +1,6 @@
 namespace GisProtocolLib.Models;
 
-public class Details
+public class FormDetails
 {
     public string? Sensor { get; set; }
     public string? TransSoft { get; set; }
