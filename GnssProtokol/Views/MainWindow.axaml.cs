@@ -142,7 +142,7 @@ public partial class MainWindow : Window
 
             var outputFile = OutputPathTextBox.Text ?? string.Empty;
 
-            await File.WriteAllTextAsync(outputFile, textToWrite);
+            await File.WriteAllTextAsync(outputFile, textToWrite, Encoding.UTF8);
 
             var docxProtocolHelper = new DocxProtocolHelper(new DocxDetails
             {
