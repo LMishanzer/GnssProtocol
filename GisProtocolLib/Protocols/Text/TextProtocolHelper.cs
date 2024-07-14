@@ -68,7 +68,7 @@ public class TextProtocolHelper
                  $"{Math.Round(c.Height, _precision),padConst}{c.Code,padConst}"))}
 
              -------------------------
-             MAX ODCHYLKY OD PRUMERU
+             ROZDILY MERENI
              -------------------------
 
              {string.Join(string.Empty, new[] { "Cislo bodu", "dY", "dX", "dZ", "dM", "delta cas" }.Select(s => s.PadLeft(padConst)))}

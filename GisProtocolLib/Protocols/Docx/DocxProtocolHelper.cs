@@ -18,18 +18,7 @@ public class DocxProtocolHelper
         var measurementTime = measurements.MaxBy(m => m.TimeEnd)?.TimeEnd;
         var maxPdop = measurements.MaxBy(m => m.Pdop)?.Pdop;
 
-        var minIntervalTicks = long.MaxValue;
-
-        foreach (var measurement1 in measurements)
-        {
-            foreach (var measurement2 in measurements)
-            {
-                if (measurement1 != measurement2 && minIntervalTicks > Math.Abs(measurement1.TimeEnd.Ticks - measurement2.TimeEnd.Ticks))
-                    minIntervalTicks = Math.Abs(measurement1.TimeEnd.Ticks - measurement2.TimeEnd.Ticks);
-            }
-        }
-
-        var minInterval = TimeSpan.FromTicks(minIntervalTicks);
+        var minInterval = GetMinInterval(measurements);
 
         var docxDict = GetDictionary(measurements, measurementTime, minInterval, maxPdop);
 
@@ -51,6 +40,28 @@ public class DocxProtocolHelper
         ReplaceFields(docxDict, body);
     }
 
+    private static TimeSpan GetMinInterval(List<Measurement> measurements)
+    {
+        var minIntervalTicks = long.MaxValue;
+
+        foreach (var measurement1 in measurements)
+        {
+            foreach (var measurement2 in measurements)
+            {
+                if (measurement1 != measurement2 && minIntervalTicks > Math.Abs(measurement1.TimeEnd.Ticks - measurement2.TimeEnd.Ticks))
+                    minIntervalTicks = Math.Abs(measurement1.TimeEnd.Ticks - measurement2.TimeEnd.Ticks);
+            }
+        }
+
+        var minInterval = TimeSpan.FromTicks(minIntervalTicks);
+        var oneSecond = TimeSpan.FromSeconds(1);
+        
+        if (minInterval < oneSecond)
+            minInterval = oneSecond;
+        
+        return minInterval;
+    }
+
     private static void ReplaceFields(Dictionary<string, string> docxDict, Body body)
     {
         foreach (var (key, value) in docxDict)
@@ -59,8 +70,8 @@ public class DocxProtocolHelper
             {
                 if (!text.Text.Contains(key))
                     continue;
+                
                 var lines = value.Split(["\r\n", "\r", "\n"], StringSplitOptions.None);
-
                 text.Text = "";
 
                 for (var i = 0; i < lines.Length; i++)

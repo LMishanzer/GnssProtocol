@@ -95,7 +95,7 @@ public partial class DetailsWindow : Window
             CoordinatesTypeIndex = CoordinatesType.SelectedIndex,
             CoordinatesType = (CoordinatesType.SelectionBoxItem as ComboBoxItem)?.Content?.ToString(),
             PouzitaStaniceIndex = PouzitaStanice.SelectedIndex,
-            PouzitaStanice = (PouzitaStanice.SelectionBoxItem as ComboBoxItem)?.Content?.ToString()
+            PouzitaStanice = (PouzitaStanice.SelectionBoxItem as ComboBoxItem)?.Content?.ToString() ?? PouzitaStanice.SelectionBoxItem?.ToString() 
         };
         
         Close(ret);

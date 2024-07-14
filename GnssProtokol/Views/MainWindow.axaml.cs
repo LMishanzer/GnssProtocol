@@ -144,7 +144,7 @@ public partial class MainWindow : Window
                 FormDetails = _formDetails,
                 Lokalita = Lokalita.Text,
                 Okres = Okres.Text,
-                OutputDocxPathTextBox = OutputPathTextBox.Text,
+                OutputDocxPathTextBox = OutputDocxPathTextBox.Text,
                 Poznamky = Poznamky.Text,
                 UzemiTextBox = UzemiTextBox.Text
             });
