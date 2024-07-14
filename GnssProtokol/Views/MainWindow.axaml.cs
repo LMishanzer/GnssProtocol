@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -21,6 +22,7 @@ public partial class MainWindow : Window
 {
     private readonly LocalDatabase _localDatabase;
     private FormDetails _formDetails = new();
+    private bool _useSamePath;
 
     public MainWindow()
     {
@@ -64,19 +66,22 @@ public partial class MainWindow : Window
     {
         var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
-            FileTypeChoices = new[]
-            {
-                FilePickerFileTypes.TextPlain,
-            },
+            FileTypeChoices =
+            [
+                FilePickerFileTypes.TextPlain
+            ],
             DefaultExtension = ".txt",
             ShowOverwritePrompt = true,
             SuggestedFileName = "protokol.txt"
         });
 
-        if (file != null)
-        {
-            OutputPathTextBox.Text = file.Path.LocalPath;
-        }
+        if (file == null) 
+            return;
+        
+        OutputPathTextBox.Text = file.Path.LocalPath;
+            
+        if (_useSamePath)
+            OutputDocxPathTextBox.Text = GetDocxName();
     }
 
     public async void OnDocxOutputButtonClick(object sender, RoutedEventArgs e)
@@ -389,5 +394,30 @@ public partial class MainWindow : Window
                 break;
             }
         }
+    }
+
+    private void ToggleFileNameSwitch(object? sender, RoutedEventArgs e)
+    {
+        var isChecked = UseSameName.IsChecked ?? false;
+        _useSamePath = isChecked;
+        
+        if (isChecked)
+        {
+            DocxPathForm.IsEnabled = false;
+            OutputDocxPathTextBox.Text = GetDocxName();
+            
+        }
+        else
+        {
+            DocxPathForm.IsEnabled = true;
+        }
+    }
+
+    private string? GetDocxName()
+    {
+        if (OutputPathTextBox.Text?.EndsWith(".txt") ?? false)
+            return Regex.Replace(OutputPathTextBox.Text, "txt$", "docx");
+
+        return OutputPathTextBox.Text;
     }
 }
