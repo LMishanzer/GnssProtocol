@@ -42,16 +42,8 @@ public class DocxProtocolHelper
 
     private static TimeSpan GetMinInterval(List<Measurement> measurements)
     {
-        var minIntervalTicks = long.MaxValue;
-
-        foreach (var measurement1 in measurements)
-        {
-            foreach (var measurement2 in measurements)
-            {
-                if (measurement1 != measurement2 && minIntervalTicks > Math.Abs(measurement1.TimeEnd.Ticks - measurement2.TimeEnd.Ticks))
-                    minIntervalTicks = Math.Abs(measurement1.TimeEnd.Ticks - measurement2.TimeEnd.Ticks);
-            }
-        }
+        // select the minimal observation time
+        var minIntervalTicks = measurements.Select(measurement => Math.Abs(measurement.TimeEnd.Ticks - measurement.TimeStart.Ticks)).Prepend(long.MaxValue).Min();
 
         var minInterval = TimeSpan.FromTicks(minIntervalTicks);
         var oneSecond = TimeSpan.FromSeconds(1);
