@@ -22,8 +22,8 @@ public class TextProtocolHelper
     {
         const int tablePadConst = 13;
         const int padConst = 16;
-        List<string> pointsHeaderFirstLine =  ["Bod c.", "Y", "X", "Z", "PDOP", "Presnost", "Presnost", "Presnost", "Sit", "Pocet",    "Antena",      "Datum", "Zacatek", "Doba",   "Kod"];
-        List<string> pointsHeaderSecondLine = ["",       "",  "",  "",  "",      "Y",       "X",        "Z",        "",    "satelitu", "vyska (FC)",  "",      "mereni",  "mereni", "bodu"];
+        List<string> pointsHeaderFirstLine =  ["Bod c.", "Y", "X", "Z", "Kod",  "PDOP",  "Presnost", "Presnost", "Presnost", "Sit", "Pocet",    "Antena",      "Datum", "Zacatek", "Doba"];
+        List<string> pointsHeaderSecondLine = ["",       "",  "",  "",  "bodu", "",      "Y",        "X",        "Z",        "",    "satelitu", "vyska (FC)",  "",      "mereni",  "mereni"];
 
         var pointsValues = measurements.Select(measurement => MeasurementSelector(measurement, tablePadConst));
 
@@ -168,20 +168,20 @@ public class TextProtocolHelper
         return
         [
             measurement.Name,
-            Math.Round(measurement.Longitude, _precision).ToString(CultureInfo.InvariantCulture),
-            Math.Round(measurement.Latitude, _precision).ToString(CultureInfo.InvariantCulture),
-            Math.Round(measurement.Height, _precision).ToString(CultureInfo.InvariantCulture),
-            $"{pdopSign}{Math.Round(measurement.Pdop, _precision).ToString(CultureInfo.InvariantCulture)}",
-            Math.Round(measurement.AccuracyY, _precision).ToString(CultureInfo.InvariantCulture),
-            Math.Round(measurement.AccuracyX, _precision).ToString(CultureInfo.InvariantCulture),
-            Math.Round(measurement.AccuracyZ, _precision).ToString(CultureInfo.InvariantCulture),
-            sit,
-            measurement.SatellitesCount.ToString(),
-            measurement.AntennaHeight.ToString(CultureInfo.InvariantCulture),
-            measurement.TimeStart.ToString("dd.MM"),
-            measurement.TimeStart.ToString("hh:mm"),
-            (measurement.TimeEnd - measurement.TimeStart).TotalSeconds.ToString(CultureInfo.InvariantCulture),
-            $"{measurement.Code} {measurement.Description}".Trim()
+            Math.Round(measurement.Longitude, _precision).ToString(CultureInfo.InvariantCulture),               // Y
+            Math.Round(measurement.Latitude, _precision).ToString(CultureInfo.InvariantCulture),                // Z
+            Math.Round(measurement.Height, _precision).ToString(CultureInfo.InvariantCulture),                  // Z
+            $"{measurement.Code} {measurement.Description}".Trim(),                                             // kod bodu
+            $"{pdopSign}{Math.Round(measurement.Pdop, _precision).ToString(CultureInfo.InvariantCulture)}",     // PDOP
+            Math.Round(measurement.AccuracyY, _precision).ToString(CultureInfo.InvariantCulture),               // Presnost Y
+            Math.Round(measurement.AccuracyX, _precision).ToString(CultureInfo.InvariantCulture),               // Presnost X
+            Math.Round(measurement.AccuracyZ, _precision).ToString(CultureInfo.InvariantCulture),               // Presnost Z
+            sit,                                                                                                // Sit
+            measurement.SatellitesCount.ToString(),                                                             // Pocet satelitu
+            measurement.AntennaHeight.ToString(CultureInfo.InvariantCulture),                                   // Antena vyska
+            measurement.TimeStart.ToString("dd.MM"),                                                      // Zacatek mereni
+            measurement.TimeStart.ToString("hh:mm"),                                                      // Konec mereni
+            (measurement.TimeEnd - measurement.TimeStart).TotalSeconds.ToString(CultureInfo.InvariantCulture)   // Doba mereni
         ];
     }
 }
