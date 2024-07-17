@@ -8,6 +8,9 @@ public class TextProtocolHelper
 {
     private readonly FormDetails _formDetails;
     private readonly int _precision;
+    private static readonly string[] RozdilyMereniHeaders = ["Cislo bodu", "dY", "dX", "dZ", "dM", "delta cas"];
+    private static readonly string[] ZprumerovaneBodyHeaders = ["Cislo bodu", "Y", "X", "Z", "Kod"];    
+    private static readonly string[] PrumerovaniBoduHeaders = ["Cislo bodu", "Y", "X", "Z", "dY", "dX", "dZ"];
 
     public TextProtocolHelper(FormDetails formDetails, int precision)
     {
@@ -53,7 +56,7 @@ public class TextProtocolHelper
              PRUMEROVANI BODU
              -------------------------
 
-             {string.Join(string.Empty, new[] { "Cislo bodu", "Y", "X", "Z", "dY", "dX", "dZ" }.Select(s => s.PadLeft(padConst)))}
+             {string.Join(string.Empty, PrumerovaniBoduHeaders.Select(s => s.PadLeft(padConst)))}
                  
              {Prumerovani(measurements, averagedCoordinates, padConst)}
 
@@ -61,21 +64,28 @@ public class TextProtocolHelper
              ZPRUMEROVANE BODY
              -------------------------
 
-             {string.Join(string.Empty, new[] { "Cislo bodu", "Y", "X", "Z", "Kod" }.Select(s => s.PadLeft(padConst)))}
+             {string.Join(string.Empty, ZprumerovaneBodyHeaders.Select(s => s.PadLeft(padConst)))}
 
              {string.Join(Environment.NewLine, averagedCoordinates.Select(c =>
-                 $"{c.Name,padConst}{Math.Round(c.Longitude, _precision),padConst}{Math.Round(c.Latitude, _precision),padConst}" +
-                 $"{Math.Round(c.Height, _precision),padConst}{c.Code,padConst}"))}
+                 $"{c.Name,padConst}" +
+                 $"{Math.Round(c.Longitude, _precision).ToString(CultureInfo.InvariantCulture),padConst}" +
+                 $"{Math.Round(c.Latitude, _precision).ToString(CultureInfo.InvariantCulture),padConst}" +
+                 $"{Math.Round(c.Height, _precision).ToString(CultureInfo.InvariantCulture),padConst}" +
+                 $"{c.Code,padConst}"))}
 
              -------------------------
              ROZDILY MERENI
              -------------------------
 
-             {string.Join(string.Empty, new[] { "Cislo bodu", "dY", "dX", "dZ", "dM", "delta cas" }.Select(s => s.PadLeft(padConst)))}
+             {string.Join(string.Empty, RozdilyMereniHeaders.Select(s => s.PadLeft(padConst)))}
 
              {string.Join(Environment.NewLine, differences.Select(c =>
-                 $"{c.Name,padConst}{Math.Round(c.Longitude, _precision),padConst}{Math.Round(c.Latitude, _precision),padConst}" +
-                 $"{Math.Round(c.Height, _precision),padConst}{Math.Round(c.Distance, _precision),padConst}{c.DeltaTime.ToString("g").Split('.')[0],padConst}"))}
+                 $"{c.Name,padConst}" +
+                 $"{Math.Round(c.Longitude, _precision).ToString(CultureInfo.InvariantCulture),padConst}" +
+                 $"{Math.Round(c.Latitude, _precision).ToString(CultureInfo.InvariantCulture),padConst}" +
+                 $"{Math.Round(c.Height, _precision).ToString(CultureInfo.InvariantCulture),padConst}" +
+                 $"{Math.Round(c.Distance, _precision).ToString(CultureInfo.InvariantCulture),padConst}" +
+                 $"{c.DeltaTime.ToString("g").Split('.')[0],padConst}"))}
                  
              """;
 
