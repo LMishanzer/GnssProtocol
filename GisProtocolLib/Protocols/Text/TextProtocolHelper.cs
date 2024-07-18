@@ -179,8 +179,8 @@ public class TextProtocolHelper
             sit,                                                                                                // Sit
             measurement.SatellitesCount.ToString(),                                                             // Pocet satelitu
             measurement.AntennaHeight.ToString(CultureInfo.InvariantCulture),                                   // Antena vyska
-            measurement.TimeStart.ToString("dd.MM"),                                                      // Zacatek mereni
-            measurement.TimeStart.ToString("hh:mm"),                                                      // Konec mereni
+            measurement.TimeStart.ToString(format: "dd.MM"),                                                    // Datum
+            measurement.TimeStart.ToString(format: "HH:mm", CultureInfo.InvariantCulture),                      // Zacatek mereni
             (measurement.TimeEnd - measurement.TimeStart).TotalSeconds.ToString(CultureInfo.InvariantCulture)   // Doba mereni
         ];
     }
