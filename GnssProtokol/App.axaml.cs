@@ -1,10 +1,10 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using PointAverager.ViewModels;
-using PointAverager.Views;
+using GnssProtokol.ViewModels;
+using GnssProtokol.Views;
 
-namespace PointAverager;
+namespace GnssProtokol;
 
 public partial class App : Application
 {

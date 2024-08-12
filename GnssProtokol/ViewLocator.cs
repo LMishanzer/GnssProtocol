@@ -1,9 +1,9 @@
 using System;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
-using PointAverager.ViewModels;
+using GnssProtokol.ViewModels;
 
-namespace PointAverager;
+namespace GnssProtokol;
 
 public class ViewLocator : IDataTemplate
 {

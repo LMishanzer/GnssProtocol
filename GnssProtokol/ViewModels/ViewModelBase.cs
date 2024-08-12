@@ -1,6 +1,6 @@
 ﻿using ReactiveUI;
 
-namespace PointAverager.ViewModels;
+namespace GnssProtokol.ViewModels;
 
 public class ViewModelBase : ReactiveObject
 {

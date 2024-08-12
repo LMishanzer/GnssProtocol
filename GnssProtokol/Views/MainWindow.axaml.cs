@@ -16,7 +16,7 @@ using GisProtocolLib.Protocols.Text;
 using GisProtocolLib.State;
 using ComboBoxItem = Avalonia.Controls.ComboBoxItem;
 
-namespace PointAverager.Views;
+namespace GnssProtokol.Views;
 
 public partial class MainWindow : Window
 {

@@ -2,7 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using GisProtocolLib.Models;
 
-namespace PointAverager.Views;
+namespace GnssProtokol.Views;
 
 public partial class DetailsWindow : Window
 {

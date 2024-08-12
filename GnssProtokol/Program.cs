@@ -2,7 +2,7 @@
 using Avalonia.ReactiveUI;
 using System;
 
-namespace PointAverager;
+namespace GnssProtokol;
 
 sealed class Program
 {
