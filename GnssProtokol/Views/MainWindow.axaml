@@ -26,14 +26,14 @@
                         <TextBox x:Name="InputPathTextBox" Margin="0,0,20,0" HorizontalAlignment="Stretch" />
                         <Button Grid.Column="1" Content="Vybrat soubor..." Click="OnInputButtonClick" />
                     </Grid>
+                    
+                    <CheckBox Name="UseSameName" Content="Použit stejnou cestu a název pro TXT a DOCX soubor" Margin="0,0,0,20" IsCheckedChanged="ToggleFileNameSwitch" />
 
                     <TextBlock Text="Výstupní *.txt soubor:" Margin="0 0 0 10" />
-                    <Grid Margin="0 0 0 10" ColumnDefinitions="*,Auto">
+                    <Grid Name="TxtPathForm" Margin="0 0 0 10" ColumnDefinitions="*,Auto">
                         <TextBox x:Name="OutputPathTextBox" Margin="0,0,20,0" HorizontalAlignment="Stretch" />
                         <Button Grid.Column="1" Content="Vybrat soubor..." Click="OnOutputButtonClick" />
                     </Grid>
-                    
-                    <CheckBox Name="UseSameName" Content="Použit stejnou cestu a název pro DOCX soubor" Margin="0,0,0,20" IsCheckedChanged="ToggleFileNameSwitch" />
                     
                     <TextBlock Text="Výstupní *.docx soubor:" Margin="0 0 0 10" />
                     <Grid Name="DocxPathForm" Margin="0 0 0 10" ColumnDefinitions="*,Auto">

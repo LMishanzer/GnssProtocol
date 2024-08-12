@@ -56,9 +56,15 @@ public partial class MainWindow : Window
             ]
         });
 
-        if (files.Any())
+        if (!files.Any()) 
+            return;
+        
+        InputPathTextBox.Text = files[0].Path.LocalPath;
+        
+        if (_useSamePath)
         {
-            InputPathTextBox.Text = files[0].Path.LocalPath;
+            OutputPathTextBox.Text = GetOutputFileName("txt");
+            OutputDocxPathTextBox.Text = GetOutputFileName("docx");
         }
     }
 
@@ -79,9 +85,6 @@ public partial class MainWindow : Window
             return;
         
         OutputPathTextBox.Text = file.Path.LocalPath;
-            
-        if (_useSamePath)
-            OutputDocxPathTextBox.Text = GetDocxName();
     }
 
     public async void OnDocxOutputButtonClick(object sender, RoutedEventArgs e)
@@ -396,28 +399,31 @@ public partial class MainWindow : Window
         }
     }
 
-    private void ToggleFileNameSwitch(object? sender, RoutedEventArgs e)
+    private void ToggleFileNameSwitch(object? _, RoutedEventArgs _1)
     {
         var isChecked = UseSameName.IsChecked ?? false;
         _useSamePath = isChecked;
         
         if (isChecked)
         {
+            TxtPathForm.IsEnabled = false;
             DocxPathForm.IsEnabled = false;
-            OutputDocxPathTextBox.Text = GetDocxName();
             
+            OutputPathTextBox.Text = GetOutputFileName("txt");
+            OutputDocxPathTextBox.Text = GetOutputFileName("docx");
         }
         else
         {
+            TxtPathForm.IsEnabled = true;
             DocxPathForm.IsEnabled = true;
         }
     }
 
-    private string? GetDocxName()
+    private string? GetOutputFileName(string fileType)
     {
-        if (OutputPathTextBox.Text?.EndsWith(".txt") ?? false)
-            return Regex.Replace(OutputPathTextBox.Text, "txt$", "docx");
+        if (InputPathTextBox.Text?.EndsWith(".csv") ?? false)
+            return Regex.Replace(InputPathTextBox.Text, "csv$", fileType);
 
-        return OutputPathTextBox.Text;
+        return InputPathTextBox.Text;
     }
 }
