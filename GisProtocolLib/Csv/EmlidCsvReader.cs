@@ -10,44 +10,58 @@ public class EmlidCsvReader : BaseCsvReader, ICsvReader
     
     private const string DateFormat = "yyyy-MM-dd HH:mm:ss.f 'UTC'zzz";
 
-    protected override Measurement? NextMeasurement(bool isGlobal, CsvReader csvReader)
+    protected override Measurement NextMeasurement(bool isGlobal, CsvReader csvReader)
     {
-        var averagingStart = csvReader.GetField<string>("Averaging start");
-        var averagingEnd = csvReader.GetField<string>("Averaging end");
+        csvReader.TryGetField<string>("Averaging start", out var averagingStart);
+        csvReader.TryGetField<string>("Averaging end", out var averagingEnd);
 
-        var timeStartOk = DateTime.TryParseExact(averagingStart, DateFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out var timeStart);
-        var timeEndOk = DateTime.TryParseExact(averagingEnd, DateFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out var timeEnd);
-
-        if (!timeStartOk || !timeEndOk)
-            return null;
+        DateTime.TryParseExact(averagingStart, DateFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out var timeStart);
+        DateTime.TryParseExact(averagingEnd, DateFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out var timeEnd);
 
         var position = new Measurement
         {
-            Name = csvReader.GetField<string>("Name"),
-            Longitude = csvReader.GetField<decimal?>(isGlobal ? "Longitude" : "Easting") ?? -1,
-            Latitude = csvReader.GetField<decimal?>(isGlobal ? "Latitude" : "Northing") ?? -1,
-            Height = csvReader.GetField<decimal?>(isGlobal ? "Ellipsoidal height" : "Elevation") ?? -1,
-            AntennaHeight = csvReader.GetField<decimal?>("Antenna height") ?? -1,
+            Name = GetTrimmedField(csvReader, "Name"),
+            Longitude = GetNumberField<decimal>(csvReader, isGlobal ? "Longitude" : "Easting", -1),
+            Latitude = GetNumberField<decimal>(csvReader, isGlobal ? "Latitude" : "Northing", -1),
+            Height = GetNumberField<decimal>(csvReader, isGlobal ? "Ellipsoidal height" : "Elevation", -1),
+            AntennaHeight = GetNumberField<decimal>(csvReader, "Antenna height", -1),
             TimeStart = timeStart,
             TimeEnd = timeEnd,
-            Pdop = csvReader.GetField<decimal?>("PDOP") ?? -1,
-            AccuracyY = csvReader.GetField<decimal?>("Easting RMS") ?? -1,
-            AccuracyX = csvReader.GetField<decimal?>("Northing RMS") ?? -1,
-            AccuracyZ = csvReader.GetField<decimal?>("Elevation RMS") ?? -1,
-            SolutionStatus = csvReader.GetField<string>("Solution status").Trim(),
-            Code = csvReader.GetField<string>("Code").Trim(),
-            Metoda = csvReader.GetField<string>("Mount point").Trim(),
-            GpsSatellites = csvReader.GetField<int?>("GPS Satellites") ?? 0,
-            GlonassSatellites = csvReader.GetField<int?>("GLONASS Satellites") ?? 0,
-            GalileoSatellites = csvReader.GetField<int?>("Galileo Satellites") ?? 0,
-            BeidouSatellites = csvReader.GetField<int?>("BeiDou Satellites") ?? 0,
-            QzssSatellites = csvReader.GetField<int?>("QZSS Satellites") ?? 0,
-            Description = csvReader.GetField<string>("Description").Trim()
+            Pdop = GetNumberField<decimal>(csvReader, "PDOP", -1),
+            AccuracyY = GetNumberField<decimal>(csvReader, "Easting RMS", -1),
+            AccuracyX = GetNumberField<decimal>(csvReader, "Northing RMS", -1),
+            AccuracyZ = GetNumberField<decimal>(csvReader, "Elevation RMS", -1),
+            SolutionStatus = GetTrimmedField(csvReader, "Solution status"),
+            Code = GetTrimmedField(csvReader, "Code"),
+            Metoda = GetTrimmedField(csvReader, "Mount point"),
+            GpsSatellites = GetNumberField(csvReader, "GPS Satellites", -1),
+            GlonassSatellites = GetNumberField(csvReader, "GLONASS Satellites", -1),
+            GalileoSatellites = GetNumberField(csvReader, "Galileo Satellites", -1),
+            BeidouSatellites = GetNumberField(csvReader, "BeiDou Satellites", -1),
+            QzssSatellites = GetNumberField(csvReader, "QZSS Satellites", -1),
+            Description = GetTrimmedField(csvReader, "Description")
         };
 
         position.Longitude = Math.Abs(position.Longitude);
         position.Latitude = Math.Abs(position.Latitude);
 
-        return position.Validate() ? position : null;
+        return position;
+
+        // return position.Validate() ? position : null;
+    }
+    
+    private static string GetTrimmedField(CsvReader csvReader, string fieldName)
+    {
+        csvReader.TryGetField<string>(fieldName, out var result);
+        return result?.Trim() ?? string.Empty;
+    }
+    
+    private static T GetNumberField<T>(CsvReader csvReader, string fieldName, T defaultValue = default) where T: struct
+    {
+        if (csvReader.TryGetField<T?>(fieldName, out var result))
+        {
+            return result ?? defaultValue;
+        }
+        return defaultValue;
     }
 }

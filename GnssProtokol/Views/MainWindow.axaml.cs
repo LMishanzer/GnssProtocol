@@ -308,6 +308,12 @@ public partial class MainWindow : Window
             _formDetails = details;
         }
     }
+    
+    private async void OpenImportWindowClick(object? _1, RoutedEventArgs _2)
+    {
+        var detailsDialog = new ImportWindow();
+        await detailsDialog.ShowDialog(this);
+    }
 
     private void InputTextBox_KeyUp(object? _1, KeyEventArgs keyEvent)
     {

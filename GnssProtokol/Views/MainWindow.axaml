@@ -14,7 +14,6 @@
         <StackPanel Spacing="10">
             <StackPanel Orientation="Horizontal" Spacing="10">
                 <StackPanel HorizontalAlignment="Stretch" MinWidth="600" Spacing="10">
-
                     <TextBlock Text="Typ technologie" Margin="0 0 0 10" />
                     <ComboBox x:Name="TypTechnologie" SelectedIndex="0" Margin="0 0 0 10">
                         <ComboBoxItem Content="EMLID" />
@@ -70,6 +69,8 @@
                 <Button Name="ProcessButton" Content="Zpracovat" Click="Process" Margin="0" />
                 
                 <Button Name="OpenDetails" Content="Detaily" Click="OpenDetailsClick" Margin="0" />
+                
+                <Button Name="OpenImportButton" Content="Importovat soubor" Click="OpenImportWindowClick" Margin="0" />
             </StackPanel>
 
             <TextBlock Name="Info" Margin="0 0 0 10" />

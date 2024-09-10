@@ -1,0 +1,31 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="400"
+        x:Class="GnssProtokol.Views.ImportWindow"
+        Title="Details">
+    <ScrollViewer>
+        <StackPanel>
+            <TextBlock Text="Soubor pro import:" Margin="20" />
+            <Grid Margin="0 0 0 10" ColumnDefinitions="*,Auto" >
+                <TextBox x:Name="ImportFileTextBox" Margin="0,0,20,0" HorizontalAlignment="Stretch" />
+                <Button Name="ImportFileSelectButton" Grid.Column="1" Content="Vybrat soubor..." Click="OnSelectImportFileButtonClick" />
+            </Grid>
+            
+            <TextBlock Text="Soubor pro export:" Margin="20" />
+            <Grid Margin="0 0 0 10" ColumnDefinitions="*,Auto" >
+                <TextBox x:Name="ExportFileTextBox" Margin="0,0,20,0" HorizontalAlignment="Stretch" />
+                <Button Name="ExportFileSelectButton" Grid.Column="1" Content="Vybrat soubor..." Click="OnSelectExportFileButtonClick" />
+            </Grid>
+            
+            <StackPanel Orientation="Horizontal" Spacing="20">
+                <Button Name="ProcessImport" Content="Importovat soubor" Click="ProcessImport_OnClick" Margin="20" />
+                <Button Name="Close" Content="Zavřít" Click="Close_OnClick" Margin="20" />
+            </StackPanel>
+            
+            <TextBlock Name="Info" Margin="0 0 0 10" />
+            
+        </StackPanel>
+    </ScrollViewer>
+</Window>
