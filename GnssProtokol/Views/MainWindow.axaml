@@ -45,6 +45,12 @@
                         <ComboBoxItem Content="," />
                         <ComboBoxItem Content=";" />
                     </ComboBox>
+                    
+                    <TextBlock Text="Režim tvorby protokolu" />
+                    <ComboBox x:Name="FitForA4" SelectedIndex="0" Margin="0 0 0 10">
+                        <ComboBoxItem Content="Obyčejný" Tag="DoNotFit" />
+                        <ComboBoxItem Content="Umístit na A4" Tag="Fit" />
+                    </ComboBox>
                 </StackPanel>
 
                 <Image Source="/Assets/3gon.png" Theme="" Width="200" Height="200" VerticalAlignment="Center" Margin="20" />

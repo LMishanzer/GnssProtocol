@@ -4,7 +4,7 @@ using GisProtocolLib.Models;
 
 namespace GisProtocolLib.Protocols.Text;
 
-public class TextProtocolHelper
+public class TextProtocolMaker
 {
     private readonly FormDetails _formDetails;
     private readonly int _precision;
@@ -12,18 +12,25 @@ public class TextProtocolHelper
     private static readonly string[] ZprumerovaneBodyHeaders = ["Cislo bodu", "Y", "X", "Z", "Kod"];    
     private static readonly string[] PrumerovaniBoduHeaders = ["Cislo bodu", "Y", "X", "Z", "dY", "dX", "dZ"];
 
-    public TextProtocolHelper(FormDetails formDetails, int precision)
+    public TextProtocolMaker(FormDetails formDetails, int precision)
     {
         _formDetails = formDetails;
         _precision = precision;
     }
     
-    public string CreateProtocol(List<Measurement> measurements, List<Coordinates> averagedCoordinates, List<MeasurementDifference> differences)
+    public string CreateProtocol(List<Measurement> measurements, List<Coordinates> averagedCoordinates, List<MeasurementDifference> differences, bool fitForA4)
     {
-        const int tablePadConst = 13;
+        var tablePadConst = 13;
         const int padConst = 16;
         List<string> pointsHeaderFirstLine =  ["Bod c.", "Y", "X", "Z", "Kod",  "PDOP",  "Presnost", "Presnost", "Presnost", "Sit", "Pocet",    "Antena",      "Datum", "Zacatek", "Doba"];
         List<string> pointsHeaderSecondLine = ["",       "",  "",  "",  "bodu", "",      "Y",        "X",        "Z",        "",    "satelitu", "vyska (FC)",  "",      "mereni",  "mereni"];
+
+        if (fitForA4)
+        {
+            tablePadConst = 20;
+            pointsHeaderFirstLine =  ["Bod c.", "Y", "X", "Z", "Kod bodu", "PDOP", "Presnost Y", "Presnost X", "Presnost Z", "Sit", "Pocet satelitu", "Antena vyska (FC)", "Datum", "Zacatek mereni", "Doba mereni"];
+            pointsHeaderSecondLine = [];
+        }
 
         var pointsValues = measurements.Select(measurement => MeasurementSelector(measurement, tablePadConst));
 
@@ -88,10 +95,35 @@ public class TextProtocolHelper
                  $"{c.DeltaTime.ToString("g").Split('.')[0],padConst}"))}
                  
              """;
+        
+        if (fitForA4)
+            protocol = FitForA4(protocol);
 
         return protocol;
     }
-    
+
+    private static string FitForA4(string protocol)
+    {
+        const int lineMaxLength = 100;
+        var protocolLines = protocol.Split(Environment.NewLine);    
+        var newProtocolLines = new List<string>(protocolLines.Length * 2);
+
+        foreach (var line in protocolLines)
+        {
+            if (line.Length <= lineMaxLength)
+            {
+                newProtocolLines.Add(line);
+                continue;
+            }
+            
+            var chunks = line.Chunk(lineMaxLength).Select(c => new string(c) + Environment.NewLine);
+            newProtocolLines.Add(Environment.NewLine);
+            newProtocolLines.AddRange(chunks);
+        }
+        
+        return string.Join(Environment.NewLine, newProtocolLines);
+    }
+
     private string Prumerovani(List<Measurement> measurements, List<Coordinates> averagedCoordinates, int padConst)
     {
         var stringBuilder = new StringBuilder();

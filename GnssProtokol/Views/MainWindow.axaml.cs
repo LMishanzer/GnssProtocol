@@ -140,8 +140,10 @@ public partial class MainWindow : Window
 
             var (aggregatedPositions, differences) = PositionsHelper.AggregatePositions(measurements);
 
-            var protocolHelper = new TextProtocolHelper(_formDetails, _precision);
-            var textToWrite = protocolHelper.CreateProtocol(measurements, aggregatedPositions, differences);
+            var fitForA4 = (FitForA4.SelectedItem as ComboBoxItem)?.Tag?.ToString() == "Fit";
+
+            var protocolHelper = new TextProtocolMaker(_formDetails, _precision);
+            var textToWrite = protocolHelper.CreateProtocol(measurements, aggregatedPositions, differences, fitForA4);
 
             var outputFile = OutputPathTextBox.Text ?? string.Empty;
 
