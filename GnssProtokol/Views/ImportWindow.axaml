@@ -20,7 +20,7 @@
             </Grid>
             
             <StackPanel Orientation="Horizontal" Spacing="20">
-                <Button Name="ProcessImport" Content="Importovat soubor" Click="ProcessImport_OnClick" Margin="20" />
+                <Button Name="ProcessImport" Content="EMLID import dat" Click="ProcessImport_OnClick" Margin="20" />
                 <Button Name="Close" Content="Zavřít" Click="Close_OnClick" Margin="20" />
             </StackPanel>
             

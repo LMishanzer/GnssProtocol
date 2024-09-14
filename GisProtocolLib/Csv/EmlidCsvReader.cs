@@ -7,16 +7,25 @@ namespace GisProtocolLib.Csv;
 public class EmlidCsvReader : BaseCsvReader, ICsvReader
 {
     protected override string MainColumnName => "Name";
-    
+
     private const string DateFormat = "yyyy-MM-dd HH:mm:ss.f 'UTC'zzz";
 
-    protected override Measurement NextMeasurement(bool isGlobal, CsvReader csvReader)
-    {
-        csvReader.TryGetField<string>("Averaging start", out var averagingStart);
-        csvReader.TryGetField<string>("Averaging end", out var averagingEnd);
+    private readonly List<string> _mandatoryAttributes =
+    [
+        "Name", "Antenna height", "Averaging start", "Averaging end", "PDOP", "Easting RMS", "Northing RMS", "Elevation RMS", "Code", "Mount point", "GPS Satellites", 
+        "GLONASS Satellites", "Galileo Satellites", "BeiDou Satellites", "QZSS Satellites"
+    ];
 
-        DateTime.TryParseExact(averagingStart, DateFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out var timeStart);
-        DateTime.TryParseExact(averagingEnd, DateFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out var timeEnd);
+    protected override Measurement? NextMeasurement(bool isGlobal, CsvReader csvReader)
+    {
+        var startRead = csvReader.TryGetField<string>("Averaging start", out var averagingStart);
+        startRead &= DateTime.TryParseExact(averagingStart, DateFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out var timeStart);
+
+        var endRead = csvReader.TryGetField<string>("Averaging end", out var averagingEnd);
+        endRead &= DateTime.TryParseExact(averagingEnd, DateFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out var timeEnd);
+
+        if (!startRead || !endRead)
+            return null;
 
         var position = new Measurement
         {
@@ -45,23 +54,52 @@ public class EmlidCsvReader : BaseCsvReader, ICsvReader
         position.Longitude = Math.Abs(position.Longitude);
         position.Latitude = Math.Abs(position.Latitude);
 
-        return position;
-
-        // return position.Validate() ? position : null;
+        return position.Validate() ? position : null;
     }
-    
+
+    protected override ValidationResult ValidateCsvHeader(string[] csvHeader, bool isGlobal)
+    {
+        List<string> otherColumns = isGlobal ? ["Longitude", "Latitude", "Ellipsoidal height"] : ["Easting", "Northing", "Elevation"];
+        var errorMessages = new List<string>();
+
+        foreach (var mandatoryColumn in _mandatoryAttributes.Union(otherColumns))
+        {
+            if (csvHeader.Contains(mandatoryColumn))
+                continue;
+
+            
+            errorMessages.Add($"CSV soubor neobsahuje povinný sloupec {mandatoryColumn}.");
+        }
+
+        if (errorMessages.Count <= 0)
+            return new ValidationResult
+            {
+                IsValid = true
+            };
+        
+        errorMessages.Add("Vytvoření protokolu je pozastaveno.");
+
+        return new ValidationResult
+        {
+            IsValid = false,
+            ErrorMessage = string.Join(Environment.NewLine, errorMessages)
+        };
+    }
+
+
     private static string GetTrimmedField(CsvReader csvReader, string fieldName)
     {
         csvReader.TryGetField<string>(fieldName, out var result);
         return result?.Trim() ?? string.Empty;
     }
-    
-    private static T GetNumberField<T>(CsvReader csvReader, string fieldName, T defaultValue = default) where T: struct
+
+    private static T GetNumberField<T>(CsvReader csvReader, string fieldName, T defaultValue = default) where T : struct
     {
         if (csvReader.TryGetField<T?>(fieldName, out var result))
         {
             return result ?? defaultValue;
         }
+
         return defaultValue;
     }
 }

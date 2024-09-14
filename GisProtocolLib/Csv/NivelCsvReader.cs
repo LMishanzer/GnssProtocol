@@ -9,6 +9,11 @@ public class NivelCsvReader : BaseCsvReader, ICsvReader
     protected override string MainColumnName => "Název";
     
     private const string DateFormat = "yyyy-MM-dd HH:mm:ss.f";
+    
+    private readonly List<string> _mandatoryAttributes =
+    [
+        "StartLokální čas", "EndLokální čas", "Název", "PDOP", "VRMS", "Status", "MountPoint", "Sdílet Sate", "Popis"
+    ];
 
     protected override Measurement? NextMeasurement(bool isGlobal, CsvReader csvReader)
     {
@@ -55,6 +60,34 @@ public class NivelCsvReader : BaseCsvReader, ICsvReader
         }
 
         return position.Validate() ? position : null;
+    }
+
+    protected override ValidationResult ValidateCsvHeader(string[] csvHeader, bool isGlobal)
+    {
+        var errorMessages = new List<string>();
+        
+        foreach (var mandatoryColumn in _mandatoryAttributes.Union([isGlobal ? "H": "Z"]))
+        {
+            if (csvHeader.Contains(mandatoryColumn))
+                continue;
+
+            
+            errorMessages.Add($"CSV soubor neobsahuje povinný sloupec {mandatoryColumn}.");
+        }
+
+        if (errorMessages.Count <= 0)
+            return new ValidationResult
+            {
+                IsValid = true
+            };
+        
+        errorMessages.Add("Vytvoření protokolu je pozastaveno.");
+
+        return new ValidationResult
+        {
+            IsValid = false,
+            ErrorMessage = string.Join(Environment.NewLine, errorMessages)
+        };
     }
 
     private static decimal? GetDecimal(CsvReader csvReader, string columnName)

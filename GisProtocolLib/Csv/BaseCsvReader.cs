@@ -2,6 +2,7 @@ using System.Globalization;
 using CsvHelper;
 using CsvHelper.Configuration;
 using GisProtocolLib.Models;
+using ValidationException = GisProtocolLib.Exceptions.ValidationException;
 
 namespace GisProtocolLib.Csv;
 
@@ -21,6 +22,11 @@ public abstract class BaseCsvReader
 
         await csvReader.ReadAsync();
         csvReader.ReadHeader();
+
+        var validationResult = ValidateCsvHeader(csvReader.HeaderRecord, isGlobal);
+
+        if (!validationResult.IsValid)
+            throw new ValidationException(validationResult.ErrorMessage ?? "CSV soubor není validní");
 
         while (await csvReader.ReadAsync())
         {
@@ -42,6 +48,8 @@ public abstract class BaseCsvReader
     }
 
     protected abstract Measurement? NextMeasurement(bool isGlobal, CsvReader csvReader);
+    
+    protected abstract ValidationResult ValidateCsvHeader(string[] csvHeader, bool isGlobal);
 
     private static string? TryGetMeasurementName(CsvReader csvReader, string name)
     {

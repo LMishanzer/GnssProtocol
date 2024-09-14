@@ -16,7 +16,8 @@ public class Converter
 
         using var csvReader = new CsvReader(inputFs, new CsvConfiguration(CultureInfo.InvariantCulture)
         {
-            Delimiter = ","
+            Delimiter = ",",
+            BadDataFound = null
         });
 
         await using var csvWriter = new CsvWriter(outputFs, new CsvConfiguration(CultureInfo.InvariantCulture)
