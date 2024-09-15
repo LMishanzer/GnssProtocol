@@ -8,10 +8,17 @@ public class PositionsHelper
     {
         foreach (var position in measurements)
         {
-            position.PointName = position.Name.Contains('.') ? position.Name.Split('.')[0] : position.Name;
+            if (position.Name.Contains('.'))
+                position.PointName = position.Name.Split('.')[0];
+            else if (position.Name.Contains('_'))
+                position.PointName = position.Name.Split('_')[0];
+            else
+                position.PointName = position.Name;
         }
 
-        var grouped = measurements.GroupBy(p => p.PointName).ToDictionary(i => i.Key, i => i.ToList());
+        var grouped = measurements
+            .GroupBy(p => p.PointName)
+            .ToDictionary(i => i.Key, i => i.ToList());
         var resultPositions = new List<Coordinates>(); 
         var resultDifferences = new List<MeasurementDifference>();
 
