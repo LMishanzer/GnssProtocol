@@ -9,16 +9,27 @@
         Icon="/Assets/3gon.png"
         Title="GNSS_protokol"
         Background="Black">
-
+    
     <ScrollViewer Margin="10">
         <StackPanel Spacing="10">
             <StackPanel Orientation="Horizontal" Spacing="10">
                 <StackPanel HorizontalAlignment="Stretch" MinWidth="600" Spacing="10">
+                    
                     <TextBlock Text="Typ technologie" Margin="0 0 0 10" />
-                    <ComboBox x:Name="TypTechnologie" SelectedIndex="0" Margin="0 0 0 10">
-                        <ComboBoxItem Content="EMLID" />
-                        <ComboBoxItem Content="NIVEL Point" />
-                    </ComboBox>
+                    
+                    <StackPanel Orientation="Horizontal">
+                        
+                        <ComboBox x:Name="TypTechnologie" SelectionChanged="TypTechnologie_OnSelectionChanged" SelectedIndex="0" Margin=" 0 0 10 10">
+                            <ComboBoxItem Content="EMLID" />
+                            <ComboBoxItem Content="NIVEL Point" />
+                        </ComboBox>
+                        
+                        <Button Name="OpenImportButton" 
+                                Content="Importovat soubor" 
+                                Click="OpenImportWindowClick"
+                                Margin="10 0 0 10" />
+                        
+                    </StackPanel>
                     
                     <TextBlock Text="CSV soubor:" Margin="0 0 0 10" />
                     <Grid Margin="0 0 0 10" ColumnDefinitions="*,Auto" >
@@ -75,8 +86,6 @@
                 <Button Name="ProcessButton" Content="Zpracovat" Click="Process" Margin="0" />
                 
                 <Button Name="OpenDetails" Content="Detaily" Click="OpenDetailsClick" Margin="0" />
-                
-                <Button Name="OpenImportButton" Content="Importovat soubor" Click="OpenImportWindowClick" Margin="0" />
             </StackPanel>
 
             <TextBlock Name="Info" Margin="0 0 0 10" />

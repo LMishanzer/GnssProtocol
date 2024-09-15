@@ -1,3 +1,4 @@
+using System;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
@@ -58,8 +59,16 @@ public partial class ImportWindow : Window
             Info.Text = "Vyberte soubory pro import a export";
             return;
         }
-        
-        await _converter.ConvertAsync(ImportFileTextBox.Text, ExportFileTextBox.Text);
+
+        try
+        {
+            await _converter.ConvertAsync(ImportFileTextBox.Text, ExportFileTextBox.Text);
+            Info.Text = "Import byl proveden úspěšně";
+        }
+        catch (Exception ex)
+        {
+            Info.Text = ex.ToString();
+        }
     }
 
     private void Close_OnClick(object? sender, RoutedEventArgs e) => Close();

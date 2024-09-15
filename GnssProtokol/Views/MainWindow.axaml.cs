@@ -434,4 +434,13 @@ public partial class MainWindow : Window
 
         return InputPathTextBox.Text;
     }
+
+    private void TypTechnologie_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (TypTechnologie?.SelectedItem is null)
+            return;
+        
+        var isEmlid = (TypTechnologie.SelectedItem as ComboBoxItem)?.Content?.ToString() == "EMLID";
+        OpenImportButton.IsVisible = isEmlid;
+    }
 }
