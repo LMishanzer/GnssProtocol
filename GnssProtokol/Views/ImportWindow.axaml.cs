@@ -33,8 +33,11 @@ public partial class ImportWindow : Window
 
         if (result.Count <= 0)
             return;
+
+        var absolutePath = result[0].Path.AbsolutePath;
         
-        ImportFileTextBox.Text = result[0].Path.AbsolutePath;
+        ImportFileTextBox.Text = absolutePath;
+        ExportFileTextBox.Text = absolutePath.Replace(result[0].Name, "export.csv");
     }
     
     private async void OnSelectExportFileButtonClick(object? sender, RoutedEventArgs e)
