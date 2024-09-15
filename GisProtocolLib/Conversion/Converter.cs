@@ -25,18 +25,12 @@ public class Converter
             Delimiter = ","
         });
 
-        var read = await csvReader.ReadAsync();
-
-        if (!read)
-            throw new FormatException("Zdrojový soubor je prázdný.");
-
-        var withElevation = csvReader.ColumnCount == 5;
-
         csvWriter.WriteHeader<MeasurementReduced>();
 
         while (await csvReader.ReadAsync())
         {
             await csvWriter.NextRecordAsync();
+            var withElevation = csvReader.ColumnCount == 5;
             var measurement = GetMeasurement(csvReader, withElevation);
             csvWriter.WriteRecord(measurement);
         }
