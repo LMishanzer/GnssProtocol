@@ -55,7 +55,9 @@ public class Converter
             Code = csvReader[counter]
         };
 
-        measurement.Code = RemoveDiacriticsAndPunctuation(measurement.Code[..20]);
+        var firstTwenty = measurement.Code[..Math.Min(20, measurement.Code.Length)];
+
+        measurement.Code = RemoveDiacriticsAndPunctuation(firstTwenty);
         measurement.Code = Regex.Replace(measurement.Code, @"\s{2,}", " ").Trim();
 
         return measurement;
