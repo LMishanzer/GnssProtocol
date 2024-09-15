@@ -165,7 +165,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            Info.Text = $"Vznikla chyba: {ex.Message}";
+            Info.Text = $"Vznikla chyba: {Environment.NewLine}{ex.Message}";
         }
         finally
         {

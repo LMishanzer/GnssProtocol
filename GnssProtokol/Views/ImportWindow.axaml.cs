@@ -70,7 +70,7 @@ public partial class ImportWindow : Window
         }
         catch (Exception ex)
         {
-            Info.Text = ex.ToString();
+            Info.Text = $"Import spadl na chybu:{Environment.NewLine}{ex}";
         }
     }
 
