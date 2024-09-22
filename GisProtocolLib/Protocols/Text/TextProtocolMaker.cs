@@ -131,7 +131,7 @@ public class TextProtocolMaker
         foreach (var averagedCoordinate in averagedCoordinates)
         {
             var currentMeasurements = measurements
-                .Where(m => m.Name.StartsWith($"{averagedCoordinate.Name}.") || m.Name.Equals(averagedCoordinate.Name, StringComparison.InvariantCultureIgnoreCase))
+                .Where(m => Regex.IsMatch(m.Name, $"^{Regex.Escape(averagedCoordinate.Name)}([^a-zA-Z0-9]+|$)", RegexOptions.IgnoreCase))
                 .OrderBy(m => m.Name)
                 .ToList();
 
