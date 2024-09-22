@@ -75,5 +75,5 @@ public partial class ImportWindow : Window
         }
     }
 
-    private void Close_OnClick(object? sender, RoutedEventArgs e) => Close();
+    private void CloseButton_OnClick(object? sender, RoutedEventArgs e) => Close();
 }

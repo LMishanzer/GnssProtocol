@@ -6,6 +6,8 @@ namespace GnssProtokol.Views;
 
 public partial class DetailsWindow : Window
 {
+    public DetailsWindow() : this(new FormDetails()) { }
+    
     public DetailsWindow(FormDetails formDetails)
     {
         InitializeComponent();

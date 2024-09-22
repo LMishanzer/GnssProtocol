@@ -27,7 +27,7 @@
             
             <StackPanel Orientation="Horizontal" Spacing="20" Margin="20">
                 <Button Name="ProcessImport" Content="EMLID import dat" Click="ProcessImport_OnClick" />
-                <Button Name="Close" Content="Zavřít" Click="Close_OnClick" />
+                <Button Content="Zavřít" Click="CloseButton_OnClick" />
             </StackPanel>
             
             <TextBlock Name="Info" Margin="20" />
