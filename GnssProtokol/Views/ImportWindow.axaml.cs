@@ -8,7 +8,7 @@ namespace GnssProtokol.Views;
 
 public partial class ImportWindow : Window
 {
-    private readonly Converter _converter = new();
+    private readonly ImportConverter _importConverter = new();
     
     public ImportWindow()
     {
@@ -65,7 +65,7 @@ public partial class ImportWindow : Window
 
         try
         {
-            await _converter.ConvertAsync(ImportFileTextBox.Text, ExportFileTextBox.Text);
+            await _importConverter.ConvertAsync(ImportFileTextBox.Text, ExportFileTextBox.Text);
             Info.Text = "Import byl proveden úspěšně";
         }
         catch (Exception ex)

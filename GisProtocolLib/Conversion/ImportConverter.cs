@@ -7,7 +7,7 @@ using GisProtocolLib.Conversion.Models;
 
 namespace GisProtocolLib.Conversion;
 
-public class Converter
+public class ImportConverter
 {
     public async Task ConvertAsync(string inputFile, string outputFile)
     {
