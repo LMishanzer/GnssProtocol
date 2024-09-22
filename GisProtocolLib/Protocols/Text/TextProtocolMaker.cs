@@ -1,5 +1,7 @@
 using System.Globalization;
 using System.Text;
+using System.Text.RegularExpressions;
+using GisProtocolLib.Extensions;
 using GisProtocolLib.Models;
 
 namespace GisProtocolLib.Protocols.Text;
@@ -21,7 +23,7 @@ public class TextProtocolMaker
     public string CreateProtocol(List<Measurement> measurements, List<Coordinates> averagedCoordinates, List<MeasurementDifference> differences, bool fitForA4)
     {
         var tablePadConst = 13;
-        const int padConst = 16;
+        const int padConst = 18;
         List<string> pointsHeaderFirstLine =  ["Bod c.", "Y", "X", "Z", "Kod",  "PDOP",  "Presnost", "Presnost", "Presnost", "Sit", "Pocet",    "Antena",      "Datum", "Zacatek", "Doba"];
         List<string> pointsHeaderSecondLine = ["",       "",  "",  "",  "bodu", "",      "Y",        "X",        "Z",        "",    "satelitu", "vyska (FC)",  "",      "mereni",  "mereni"];
 
@@ -92,7 +94,7 @@ public class TextProtocolMaker
                  $"{Math.Round(c.Latitude, _precision).ToString(CultureInfo.InvariantCulture),padConst}" +
                  $"{Math.Round(c.Height, _precision).ToString(CultureInfo.InvariantCulture),padConst}" +
                  $"{Math.Round(c.Distance, _precision).ToString(CultureInfo.InvariantCulture),padConst}" +
-                 $"{c.DeltaTime.ToString("g").Split('.')[0],padConst}"))}
+                 c.DeltaTime.ToShortCzechFormat().PadLeft(padConst)))}
                  
              """;
         
@@ -168,7 +170,7 @@ public class TextProtocolMaker
                 Math.Round(averagedCoordinate.Longitude, _precision).ToString(CultureInfo.InvariantCulture),
                 Math.Round(averagedCoordinate.Latitude, _precision).ToString(CultureInfo.InvariantCulture),
                 Math.Round(averagedCoordinate.Height, _precision).ToString(CultureInfo.InvariantCulture),
-                $"    Cas.odstup: {TimeSpanToString(timeDiff)}"
+                $"    Cas.odstup: {timeDiff.ToLongCzechFormat()}"
             ];
 
             stringBuilder.Append(string.Join("", summary.Select(s => s.PadLeft(padConst))));
@@ -177,8 +179,6 @@ public class TextProtocolMaker
 
         return stringBuilder.ToString();
     }
-    
-    private static string TimeSpanToString(TimeSpan timeSpan) => $"{timeSpan.Days} dnů {timeSpan.Hours:00}:{timeSpan.Minutes:00}:{timeSpan.Seconds:00}";
     
     private List<string> MeasurementSelector(Measurement measurement, int padConst)
     {
