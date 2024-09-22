@@ -9,14 +9,17 @@ namespace GisProtocolLib.Conversion;
 
 public class ImportConverter
 {
-    public async Task ConvertAsync(string inputFile, string outputFile)
+    public async Task ConvertAsync(string inputFile, string outputFile, string delimiter = ",")
     {
+        if (delimiter is not ("," or ";"))
+            throw new ApplicationException("Invalid delimiter");
+        
         using var inputFs = new StreamReader(inputFile);
         await using var outputFs = new StreamWriter(outputFile);
 
         using var csvReader = new CsvReader(inputFs, new CsvConfiguration(CultureInfo.InvariantCulture)
         {
-            Delimiter = ",",
+            Delimiter = delimiter,
             BadDataFound = null
         });
 

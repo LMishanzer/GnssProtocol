@@ -13,11 +13,17 @@
                 <Button Name="ImportFileSelectButton" Grid.Column="1" Content="Vybrat soubor..." Click="OnSelectImportFileButtonClick" />
             </Grid>
             
-            <TextBlock Text="Soubor pro export:" Margin="20 20 0 0" />
+            <TextBlock Text="Soubor pro export:" Margin="20 0 0 0" />
             <Grid Margin="20" ColumnDefinitions="*,Auto" >
                 <TextBox x:Name="ExportFileTextBox" Margin="0,0,20,0" HorizontalAlignment="Stretch" />
                 <Button Name="ExportFileSelectButton" Grid.Column="1" Content="Vybrat soubor..." Click="OnSelectExportFileButtonClick" />
             </Grid>
+            
+            <TextBlock Text="CSV rozdělovač:" Margin="20 0 0 0" />
+            <ComboBox x:Name="Delimiter" SelectedIndex="0" Margin="20 0 0 0">
+                <ComboBoxItem Content="," />
+                <ComboBoxItem Content=";" />
+            </ComboBox>
             
             <StackPanel Orientation="Horizontal" Spacing="20" Margin="20">
                 <Button Name="ProcessImport" Content="EMLID import dat" Click="ProcessImport_OnClick" />

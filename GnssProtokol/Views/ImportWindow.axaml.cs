@@ -65,7 +65,8 @@ public partial class ImportWindow : Window
 
         try
         {
-            await _importConverter.ConvertAsync(ImportFileTextBox.Text, ExportFileTextBox.Text);
+            var delimiter = (Delimiter.SelectedItem as ComboBoxItem)?.Content as string ?? ",";
+            await _importConverter.ConvertAsync(ImportFileTextBox.Text, ExportFileTextBox.Text, delimiter);
             Info.Text = "Import byl proveden úspěšně";
         }
         catch (Exception ex)
