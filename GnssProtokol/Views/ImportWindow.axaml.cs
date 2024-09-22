@@ -34,7 +34,7 @@ public partial class ImportWindow : Window
         if (result.Count <= 0)
             return;
 
-        var absolutePath = result[0].Path.AbsolutePath;
+        var absolutePath = result[0].Path.LocalPath;
         
         ImportFileTextBox.Text = absolutePath;
         ExportFileTextBox.Text = absolutePath.Replace(result[0].Name, "export.csv");
@@ -52,7 +52,7 @@ public partial class ImportWindow : Window
         if (file is null)
             return;
         
-        ExportFileTextBox.Text = file.Path.AbsolutePath;
+        ExportFileTextBox.Text = file.Path.LocalPath;
     }
 
     private async void ProcessImport_OnClick(object? sender, RoutedEventArgs e)
