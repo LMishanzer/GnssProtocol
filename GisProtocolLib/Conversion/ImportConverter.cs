@@ -43,9 +43,9 @@ public class Converter
         var measurement = new MeasurementReduced
         {
             Name = csvReader[counter++],
-            Easting = -Math.Abs(decimal.Parse(csvReader[counter++])),
-            Northing = -Math.Abs(decimal.Parse(csvReader[counter++])),
-            Elevation = withElevation ? decimal.Parse(csvReader[counter++]) : 0,
+            Easting = -Math.Abs(decimal.Parse(csvReader[counter++], CultureInfo.InvariantCulture)),
+            Northing = -Math.Abs(decimal.Parse(csvReader[counter++], CultureInfo.InvariantCulture)),
+            Elevation = withElevation ? decimal.Parse(csvReader[counter++], CultureInfo.InvariantCulture) : 0,
             Code = csvReader[counter]
         };
 
