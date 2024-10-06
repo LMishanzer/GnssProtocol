@@ -24,8 +24,8 @@ public class TextProtocolMaker
     {
         var tablePadConst = 13;
         const int padConst = 18;
-        List<string> pointsHeaderFirstLine =  ["Bod c.", "Y", "X", "Z", "Kod",  "PDOP",  "Presnost", "Presnost", "Presnost", "Sit", "Pocet",    "Antena",      "Datum", "Zacatek", "Doba"];
-        List<string> pointsHeaderSecondLine = ["",       "",  "",  "",  "bodu", "",      "Y",        "X",        "Z",        "",    "satelitu", "vyska (FC)",  "",      "mereni",  "mereni"];
+        List<string> pointsHeaderFirstLine =  ["Bod c.", "Y", "X", "Z", "Kod",  "PDOP",  "Presnost", "Presnost", "Presnost", "Sit", "Pocet",    "Antena",      "Datum", "Zacatek", "Doba",   "RTK fix"];
+        List<string> pointsHeaderSecondLine = ["",       "",  "",  "",  "bodu", "",      "Y",        "X",        "Z",        "",    "satelitu", "vyska (FC)",  "",      "mereni",  "mereni", ""];
 
         if (fitForA4)
         {
@@ -213,7 +213,8 @@ public class TextProtocolMaker
             measurement.AntennaHeight.ToString(CultureInfo.InvariantCulture),                                   // Antena vyska
             measurement.TimeStart.ToString(format: "dd.MM.yyyy"),                                               // Datum
             measurement.TimeStart.ToString(format: "HH:mm:ss", CultureInfo.InvariantCulture),                   // Zacatek mereni
-            (measurement.TimeEnd - measurement.TimeStart).TotalSeconds.ToString(CultureInfo.InvariantCulture)   // Doba mereni
+            (measurement.TimeEnd - measurement.TimeStart).TotalSeconds.ToString(CultureInfo.InvariantCulture),  // Doba mereni
+            measurement.SolutionStatus                                                                          // RTK fix
         ];
     }
 }
