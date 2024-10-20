@@ -1,8 +1,8 @@
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
+using GisProtocolLib.CommonModels;
 using GisProtocolLib.Extensions;
-using GisProtocolLib.Models;
 
 namespace GisProtocolLib.Protocols.Text;
 
@@ -100,6 +100,24 @@ public class TextProtocolMaker
         
         if (fitForA4)
             protocol = FitForA4(protocol);
+
+        return protocol;
+    }
+
+    public string OnlyAveraged(List<Measurement> measurements, List<Coordinates> averagedCoordinates)
+    {
+        const int padConst = 18;
+        
+        var protocol = 
+            $"""
+            -------------------------
+            PRUMEROVANI BODU
+            -------------------------
+
+            {string.Join(string.Empty, PrumerovaniBoduHeaders.Select(s => s.PadLeft(padConst)))}
+                
+            {Prumerovani(measurements, averagedCoordinates, padConst)}
+            """;
 
         return protocol;
     }

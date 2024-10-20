@@ -1,4 +1,4 @@
-using GisProtocolLib.Models;
+using GisProtocolLib.CommonModels;
 using Newtonsoft.Json;
 
 namespace GisProtocolLib.State;

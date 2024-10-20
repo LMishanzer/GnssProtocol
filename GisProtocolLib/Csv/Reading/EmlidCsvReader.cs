@@ -1,10 +1,10 @@
 ﻿using System.Globalization;
 using CsvHelper;
-using GisProtocolLib.Models;
+using GisProtocolLib.CommonModels;
 
-namespace GisProtocolLib.Csv;
+namespace GisProtocolLib.Csv.Reading;
 
-public class EmlidCsvReader : BaseCsvReader, ICsvReader
+public class EmlidCsvReader : BaseCsvReader
 {
     protected override string MainColumnName => "Name";
 

@@ -1,10 +1,10 @@
 using System.Globalization;
 using CsvHelper;
-using GisProtocolLib.Models;
+using GisProtocolLib.CommonModels;
 
-namespace GisProtocolLib.Csv;
+namespace GisProtocolLib.Csv.Reading;
 
-public class NivelCsvReader : BaseCsvReader, ICsvReader
+public class NivelCsvReader : BaseCsvReader
 {
     protected override string MainColumnName => "Název";
     

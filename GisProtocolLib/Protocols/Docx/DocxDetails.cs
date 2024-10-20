@@ -1,4 +1,4 @@
-using GisProtocolLib.Models;
+using GisProtocolLib.CommonModels;
 
 namespace GisProtocolLib.Protocols.Docx;
 

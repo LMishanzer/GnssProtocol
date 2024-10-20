@@ -1,18 +1,16 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
-using GisProtocolLib;
-using GisProtocolLib.Csv;
-using GisProtocolLib.Models;
+using GisProtocolLib.CommonModels;
+using GisProtocolLib.Messages;
+using GisProtocolLib.Protocols;
 using GisProtocolLib.Protocols.Docx;
-using GisProtocolLib.Protocols.Text;
 using GisProtocolLib.State;
 using ComboBoxItem = Avalonia.Controls.ComboBoxItem;
 
@@ -102,70 +100,56 @@ public partial class MainWindow : Window
         }
     }
 
-    private int _precision;
-
     public async void Process(object sender, RoutedEventArgs e)
     {
+        var buttonSender = sender as Button ?? throw new InvalidOperationException();
+        
         Info.Text = string.Empty;
 
         SaveState();
 
-        var filePath = InputPathTextBox.Text ?? string.Empty;
+        var sourceFilePath = InputPathTextBox.Text ?? string.Empty;
 
-        if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
+        if (string.IsNullOrWhiteSpace(sourceFilePath) || !File.Exists(sourceFilePath))
         {
-            Info.Text = "No input file";
-
+            Info.Text = "Zdrojový soubor není vyplněn nebo neexistuje";
             return;
         }
 
         try
         {
             ProcessButton.IsEnabled = false;
-            var isGlobal = _formDetails.CoordinatesType == "Globální";
-            _precision = _formDetails.PrecisionInput ?? 2;
 
             var typTechnologie = (TypTechnologie.SelectedItem as ComboBoxItem)?.Content as string ?? string.Empty;
-            ICsvReader csvReader = typTechnologie switch
-            {
-                "EMLID" => new EmlidCsvReader(),
-                "NIVEL Point" => new NivelCsvReader(),
-                _ => throw new Exception("Neznámý typ technologie")
-            };
-
             var delimiterValue = (Delimiter.SelectedItem as ComboBoxItem)?.Content as string;
-            
-            var csvData = await csvReader.ReadData(filePath, isGlobal, delimiterValue ?? ",");
-            var measurements = csvData.Measurements;
-
-            var (aggregatedPositions, differences) = PositionsHelper.AggregatePositions(measurements);
-
             var fitForA4 = (FitForA4.SelectedItem as ComboBoxItem)?.Tag?.ToString() == "Fit";
-
-            var protocolHelper = new TextProtocolMaker(_formDetails, _precision);
-            var textToWrite = protocolHelper.CreateProtocol(measurements, aggregatedPositions, differences, fitForA4);
-
             var outputFile = OutputPathTextBox.Text ?? string.Empty;
 
-            await File.WriteAllTextAsync(outputFile, textToWrite, Encoding.UTF8);
-
-            var docxProtocolHelper = new DocxProtocolHelper(new DocxDetails
+            var protocolData = new ProtocolData
             {
                 FormDetails = _formDetails,
-                Lokalita = Lokalita.Text,
-                Okres = Okres.Text,
-                OutputDocxPathTextBox = OutputDocxPathTextBox.Text,
-                Poznamky = Poznamky.Text,
-                UzemiTextBox = UzemiTextBox.Text
-            });
+                CsvDelimiter = delimiterValue ?? ",",
+                DocxDetails = new DocxDetails
+                {
+                    Lokalita = Lokalita.Text,
+                    Okres = Okres.Text,
+                    OutputDocxPathTextBox = OutputDocxPathTextBox.Text,
+                    Poznamky = Poznamky.Text,
+                    UzemiTextBox = UzemiTextBox.Text,
+                    FormDetails = _formDetails
+                },
+                TechnologyType = typTechnologie,
+                SourceFilePath = sourceFilePath,
+                OutputFilePath = outputFile,
+                FitForA4 = fitForA4,
+                OnlyAveragedPoints = false
+            };
 
-            docxProtocolHelper.CreateProtocol(measurements);
-
-            Info.Text = GetStatus(csvData.UnreadMeasurementNames);
+            await ProcessButtonClick(protocolData, buttonSender);
         }
         catch (Exception ex)
         {
-            Info.Text = $"Vznikla chyba: {Environment.NewLine}{ex.Message}";
+            Info.Text = StatusMessageHandler.GetErrorString(ex);
         }
         finally
         {
@@ -173,30 +157,23 @@ public partial class MainWindow : Window
         }
     }
 
-    private static string GetStatus(List<string> unusedMeasurementNames)
+    private async Task ProcessButtonClick(ProtocolData protocolData, Button buttonSender)
     {
-        const string successMessage = "Úspěšně dokončeno";
-        const string unusedMeasurementsMessage = "Vynechané body:";
-        const int maxLines = 10;
-
-        if (unusedMeasurementNames.Count == 0)
-            return successMessage;
-
-        var stringBuilder = new StringBuilder();
-
-        stringBuilder.AppendLine(successMessage);
-        stringBuilder.AppendLine();
-        stringBuilder.AppendLine(unusedMeasurementsMessage);
-
-        foreach (var unusedMeasurement in unusedMeasurementNames.Take(maxLines))
+        switch (buttonSender.Name)
         {
-            stringBuilder.AppendLine(unusedMeasurement);
+            case "ProcessButton":
+                var unreadMeasurements = await ProtocolProcessor.ProcessProtocol(protocolData);
+                Info.Text = StatusMessageHandler.GetStatus(unreadMeasurements.Names);
+                break;
+            case "OnlyAveragedButton":
+                var averagedDialog = new OnlyAveragedDialogWindow(protocolData);
+                await averagedDialog.ShowDialog(this);
+                break;
+            case "MapPointsButton":
+                var mapPointsDialog = new MapPointsDialogWindow(protocolData);
+                await mapPointsDialog.ShowDialog(this);
+                break;
         }
-
-        if (unusedMeasurementNames.Count > maxLines)
-            stringBuilder.AppendLine("...");
-
-        return stringBuilder.ToString();
     }
 
     private async void SaveState()

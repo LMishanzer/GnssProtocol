@@ -1,4 +1,6 @@
-namespace GisProtocolLib.Csv;
+using GisProtocolLib.Csv.Models;
+
+namespace GisProtocolLib.Csv.Reading;
 
 public interface ICsvReader
 {

@@ -45,5 +45,13 @@
         <DependentUpon>ImportWindow.axaml</DependentUpon>
         <SubType>Code</SubType>
       </Compile>
+      <Compile Update="Views\OnlyAveragedDialogWindow.axaml.cs">
+        <DependentUpon>OnlyAveragedDialogWindow.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
+      <Compile Update="Views\MapPointsDialogWindow.axaml.cs">
+        <DependentUpon>MapPointsDialogWindow.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
     </ItemGroup>
 </Project>

@@ -1,4 +1,4 @@
-namespace GisProtocolLib.Models;
+namespace GisProtocolLib.CommonModels;
 
 public class Measurement
 {

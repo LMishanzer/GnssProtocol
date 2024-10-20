@@ -1,6 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using GisProtocolLib.Models;
+using GisProtocolLib.CommonModels;
 
 namespace GnssProtokol.Views;
 

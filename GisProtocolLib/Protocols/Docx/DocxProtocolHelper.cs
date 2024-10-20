@@ -1,6 +1,6 @@
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
-using GisProtocolLib.Models;
+using GisProtocolLib.CommonModels;
 
 namespace GisProtocolLib.Protocols.Docx;
 

@@ -1,12 +1,13 @@
 using System.Globalization;
 using CsvHelper;
 using CsvHelper.Configuration;
-using GisProtocolLib.Models;
+using GisProtocolLib.CommonModels;
+using GisProtocolLib.Csv.Models;
 using ValidationException = GisProtocolLib.Exceptions.ValidationException;
 
-namespace GisProtocolLib.Csv;
+namespace GisProtocolLib.Csv.Reading;
 
-public abstract class BaseCsvReader
+public abstract class BaseCsvReader : ICsvReader
 {
     protected abstract string MainColumnName { get; }
     
@@ -41,7 +42,7 @@ public abstract class BaseCsvReader
             var unreadMeasurement = TryGetMeasurementName(csvReader, MainColumnName);
             
             if (!string.IsNullOrWhiteSpace(unreadMeasurement))
-                csvData.UnreadMeasurementNames.Add(unreadMeasurement);
+                csvData.UnreadMeasurements.Add(unreadMeasurement);
         }
 
         return csvData;

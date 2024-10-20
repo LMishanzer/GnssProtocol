@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace GisProtocolLib.Models;
+namespace GisProtocolLib.CommonModels;
 
 public class LocalDatabase
 {
