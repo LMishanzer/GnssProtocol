@@ -38,6 +38,8 @@ public partial class OnlyAveragedDialogWindow : Window
     
     private async void Process(object? sender, RoutedEventArgs e)
     {
+        Info.Text = string.Empty;
+        
         var outputFilePath = OutputFilePath.Text ?? string.Empty;
         
         if (string.IsNullOrWhiteSpace(outputFilePath))
@@ -48,18 +50,24 @@ public partial class OnlyAveragedDialogWindow : Window
 
         try
         {
+            ProcessButton.IsEnabled = false;
+            
             _protocolData.OutputFilePath = outputFilePath;
             _protocolData.OnlyAveragedPoints = true;
 
             var unreadMeasurements = await ProtocolProcessor.ProcessProtocol(_protocolData);
 
             var statusString = StatusMessageHandler.GetStatus(unreadMeasurements.Names);
-            
+
             Info.Text = statusString;
         }
         catch (Exception ex)
         {
             Info.Text = StatusMessageHandler.GetErrorString(ex);
+        }
+        finally
+        {
+            ProcessButton.IsEnabled = true;
         }
     }
 

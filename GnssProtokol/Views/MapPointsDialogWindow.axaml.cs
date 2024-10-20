@@ -41,6 +41,7 @@ public partial class MapPointsDialogWindow : Window
     
     private async void Process(object? sender, RoutedEventArgs e)
     {
+        Info.Text = string.Empty;
         var outputFilePath = OutputFilePath.Text ?? string.Empty;
         
         if (string.IsNullOrWhiteSpace(outputFilePath))
@@ -51,9 +52,11 @@ public partial class MapPointsDialogWindow : Window
 
         try
         {
+            ProcessButton.IsEnabled = false;
+
             _protocolData.OutputFilePath = outputFilePath;
             _protocolData.OnlyAveragedPoints = true;
-            
+
             var isGlobal = _protocolData.IsGlobal();
             var csvReader = _protocolData.GetCsvReader();
             var csvWriter = _protocolData.GetCsvWriter();
@@ -67,16 +70,20 @@ public partial class MapPointsDialogWindow : Window
                 Height = m.Height,
                 Code = m.Code
             });
-            
+
             await csvWriter.WriteData(outputFilePath, outputData, isGlobal, _protocolData.CsvDelimiter);
 
             var statusString = StatusMessageHandler.GetStatus(csvData.UnreadMeasurements.Names);
-            
+
             Info.Text = statusString;
         }
         catch (Exception ex)
         {
             Info.Text = StatusMessageHandler.GetErrorString(ex);
+        }
+        finally
+        {
+            ProcessButton.IsEnabled = true;
         }
     }
 
