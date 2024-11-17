@@ -4,11 +4,11 @@ using GisProtocolLib.CommonModels;
 
 namespace GisProtocolLib.Protocols.Docx;
 
-public class DocxProtocolHelper
+public class DocxProtocolMaker
 {
     private readonly DocxDetails _docxDetails;
 
-    public DocxProtocolHelper(DocxDetails docxDetails)
+    public DocxProtocolMaker(DocxDetails docxDetails)
     {
         _docxDetails = docxDetails;
     }

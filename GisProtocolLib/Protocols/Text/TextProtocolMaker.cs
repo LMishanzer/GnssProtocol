@@ -104,27 +104,41 @@ public class TextProtocolMaker
         return protocol;
     }
 
-    public string OnlyAveraged(List<Measurement> measurements, List<Coordinates> averagedCoordinates)
+    public string OnlyAveraged(List<Coordinates> averagedCoordinates)
     {
         const int padConst = 18;
         
         var protocol = 
             $"""
-            -------------------------
-            PRUMEROVANI BODU
-            -------------------------
-
-            {string.Join(string.Empty, PrumerovaniBoduHeaders.Select(s => s.PadLeft(padConst)))}
-                
-            {Prumerovani(measurements, averagedCoordinates, padConst)}
+            {string.Join(Environment.NewLine, averagedCoordinates.Select(c =>
+                 $"{c.Name,padConst}" +
+                 $"{Math.Round(c.Longitude, _precision).ToString(CultureInfo.InvariantCulture),padConst}" +
+                 $"{Math.Round(c.Latitude, _precision).ToString(CultureInfo.InvariantCulture),padConst}" +
+                 $"{Math.Round(c.Height, _precision).ToString(CultureInfo.InvariantCulture),padConst}" +
+                 $"{c.Code,padConst}"))}
             """;
+
+        return protocol;
+    }
+
+    public string OnlyMappedPoints(IEnumerable<ReducedMeasurement> measurements)
+    {
+        const int padConst = 18;
+        
+        var protocol = 
+            $"{string.Join(Environment.NewLine, measurements.Select(c =>
+                $"{c.Name,padConst}" +
+                $"{Math.Round(c.Longitude, _precision).ToString(CultureInfo.InvariantCulture),padConst}" +
+                $"{Math.Round(c.Latitude, _precision).ToString(CultureInfo.InvariantCulture),padConst}" +
+                $"{Math.Round(c.Height, _precision).ToString(CultureInfo.InvariantCulture),padConst}" +
+                $"{c.Code,padConst}"))}";
 
         return protocol;
     }
 
     private static string FitForA4(string protocol)
     {
-        const int lineMaxLength = 100;
+        const int lineMaxLength = 80;
         var protocolLines = protocol.Split(Environment.NewLine);    
         var newProtocolLines = new List<string>(protocolLines.Length * 2);
 

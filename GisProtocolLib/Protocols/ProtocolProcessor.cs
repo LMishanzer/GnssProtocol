@@ -22,14 +22,14 @@ public static class ProtocolProcessor
 
         if (protocolData.OnlyAveragedPoints)
         {
-            var textToWrite = protocolHelper.OnlyAveraged(measurements, aggregatedPositions);
+            var textToWrite = protocolHelper.OnlyAveraged(aggregatedPositions);
             await File.WriteAllTextAsync(protocolData.OutputFilePath, textToWrite, Encoding.UTF8);
         }
         else
         {
             var textToWrite = protocolHelper.CreateProtocol(measurements, aggregatedPositions, differences, protocolData.FitForA4);
             await File.WriteAllTextAsync(protocolData.OutputFilePath, textToWrite, Encoding.UTF8);
-            var docxProtocolHelper = new DocxProtocolHelper(protocolData.DocxDetails);
+            var docxProtocolHelper = new DocxProtocolMaker(protocolData.DocxDetails);
             docxProtocolHelper.CreateProtocol(measurements);
         }
 

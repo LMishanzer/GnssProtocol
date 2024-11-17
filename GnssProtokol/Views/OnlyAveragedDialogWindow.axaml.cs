@@ -16,6 +16,8 @@ public partial class OnlyAveragedDialogWindow : Window
         _protocolData = protocolData;
         InitializeComponent();
     }
+    
+    public OnlyAveragedDialogWindow() => throw new Exception();
 
     public async void OnOutputButtonClick(object sender, RoutedEventArgs e)
     {

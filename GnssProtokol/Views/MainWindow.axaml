@@ -83,14 +83,14 @@
             <TextBox x:Name="Poznamky" Text="" Margin="0 0 0 10" TextWrapping="Wrap" Height="100" AcceptsReturn="True" />
 
             <StackPanel Orientation="Horizontal" Spacing="10">
-                <Button Name="ProcessButton" Content="Zpracovat" Click="Process" Margin="0" />
+                <Button Name="ProcessButton" Content="Vyhotovení protokolu GNSS" Click="Process" Margin="0" />
                 
-                <Button Name="OpenDetails" Content="Detaily" Click="OpenDetailsClick" Margin="0" />
+                <Button Name="OpenDetails" Content="Nastavení protokolu" Click="OpenDetailsClick" Margin="0" />
             </StackPanel>
             
             <StackPanel Orientation="Horizontal" Spacing="10">
                 <Button Name="OnlyAveragedButton" Content="Seznam souřadnic bodů i s průměrem" Click="Process" Margin="0" />
-                <Button Name="MapPointsButton" Content="Seznam souřadnic surových měření" Click="Process" Margin="0" />
+                <Button Name="MapPointsButton" Content="Seznam souřadnic měřených bodů" Click="Process" Margin="0" />
             </StackPanel>
 
             <TextBlock Name="Info" Margin="0 0 0 10" />

@@ -1,11 +1,14 @@
 using System;
+using System.IO;
 using System.Linq;
+using System.Net;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using GisProtocolLib.CommonModels;
 using GisProtocolLib.Messages;
 using GisProtocolLib.Protocols;
+using GisProtocolLib.Protocols.Text;
 
 namespace GnssProtokol.Views;
 
@@ -20,17 +23,23 @@ public partial class MapPointsDialogWindow : Window
         InitializeComponent();
     }
 
+    public MapPointsDialogWindow() => throw new Exception();
+
     public async void OnOutputButtonClick(object sender, RoutedEventArgs e)
     {
         var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
-            FileTypeChoices = [ new FilePickerFileType("CSV file")
-            {
-                MimeTypes = ["text/csv"]
-            }],
-            DefaultExtension = ".csv",
+            // FileTypeChoices = [ new FilePickerFileType("CSV file")
+            // {
+            //     MimeTypes = ["text/csv"]
+            // }],
+            FileTypeChoices = 
+            [
+                FilePickerFileTypes.TextPlain
+            ],
+            DefaultExtension = ".txt",
             ShowOverwritePrompt = true,
-            SuggestedFileName = "seznam_souradnic_surovych_mereni.csv"
+            SuggestedFileName = "seznam_souradnic_surovych_mereni.txt"
         });
 
         if (file == null) 
@@ -59,8 +68,9 @@ public partial class MapPointsDialogWindow : Window
 
             var isGlobal = _protocolData.IsGlobal();
             var csvReader = _protocolData.GetCsvReader();
-            var csvWriter = _protocolData.GetCsvWriter();
+            // var csvWriter = _protocolData.GetCsvWriter();
             var csvData = await csvReader.ReadData(_protocolData.SourceFilePath, isGlobal, _protocolData.CsvDelimiter);
+            var protocolProcessor = new TextProtocolMaker(_protocolData.FormDetails, _protocolData.GetPrecision());
 
             var outputData = csvData.Measurements.Select(m => new ReducedMeasurement
             {
@@ -70,8 +80,12 @@ public partial class MapPointsDialogWindow : Window
                 Height = m.Height,
                 Code = m.Code
             });
+            
+            var protocol = protocolProcessor.OnlyMappedPoints(outputData);
+            
+            await File.WriteAllTextAsync(outputFilePath, protocol);
 
-            await csvWriter.WriteData(outputFilePath, outputData, isGlobal, _protocolData.CsvDelimiter);
+            // await csvWriter.WriteData(outputFilePath, outputData, isGlobal, _protocolData.CsvDelimiter);
 
             var statusString = StatusMessageHandler.GetStatus(csvData.UnreadMeasurements.Names);
 
