@@ -11,7 +11,7 @@ public class TextProtocolMaker
     private readonly FormDetails _formDetails;
     private readonly int _precision;
     private static readonly string[] RozdilyMereniHeaders = ["Cislo bodu", "dY", "dX", "dZ", "dM", "delta cas"];
-    private static readonly string[] ZprumerovaneBodyHeaders = ["Cislo bodu", "Y", "X", "Z", "Kod"];    
+    private static readonly string[] VysledneSouradniceHeaders = ["Cislo bodu", "Y", "X", "Z", "Kod"];    
     private static readonly string[] PrumerovaniBoduHeaders = ["Cislo bodu", "Y", "X", "Z", "dY", "dX", "dZ"];
 
     public TextProtocolMaker(FormDetails formDetails, int precision)
@@ -65,15 +65,13 @@ public class TextProtocolMaker
              PRUMEROVANI BODU
              -------------------------
 
-             {string.Join(string.Empty, PrumerovaniBoduHeaders.Select(s => s.PadLeft(padConst)))}
-                 
-             {Prumerovani(measurements, averagedCoordinates, padConst)}
+             {PrumerovaniBodu(measurements, averagedCoordinates, tablePadConst)}
 
              -------------------------
-             ZPRUMEROVANE BODY
+             VYSLEDNE SOURADNICE
              -------------------------
 
-             {string.Join(string.Empty, ZprumerovaneBodyHeaders.Select(s => s.PadLeft(padConst)))}
+             {string.Join(string.Empty, VysledneSouradniceHeaders.Select(s => s.PadLeft(padConst)))}
 
              {string.Join(Environment.NewLine, averagedCoordinates.Select(c =>
                  $"{c.Name,padConst}" +
@@ -102,6 +100,56 @@ public class TextProtocolMaker
             protocol = FitForA4(protocol);
 
         return protocol;
+    }
+
+    public string AllMeasurementsProtocol(List<Measurement> measurements, int tablePadConst)
+    {
+        List<string> pointsHeaderFirstLine =  ["Bod c.", "Y", "X", "Z", "PDOP", "Sit", "Poc.", "Ant.", "Dat.", "Zac.", "Doba", "RTK"];
+        List<string> pointsHeaderSecondLine = ["",       "",  "",  "",  "",     "",    "sat.", "vys.", "mer.", "mer.", "",     ""];
+        
+        var pointsValues = measurements.Select(measurement => MeasurementSelector(measurement, tablePadConst)).ToList();
+
+        var filteredPointsValues = pointsValues.Select(values => values.Where((_, index) => index != 4 && index != 6 && index != 7 && index != 8)).ToList();
+        
+        return $"""
+            {string.Join(string.Empty, pointsHeaderFirstLine.Select(Modify))}
+            {string.Join(string.Empty, pointsHeaderSecondLine.Select(Modify))}
+            {string.Join(Environment.NewLine, filteredPointsValues.Select(p => string.Join("", p.Select(Modify))))}
+        """;
+
+        string Modify(string pointValue)
+        {
+            if (pointValue.Length >= tablePadConst - 1)
+                pointValue = $"{pointValue[..(tablePadConst - 1)]}";
+            
+            return pointValue.PadLeft(tablePadConst);
+        }
+    }
+
+    public string PrumerovaniBodu(List<Measurement> measurements, List<Coordinates> averagedCoordinates, int padConst) =>
+        $"""
+         {string.Join(string.Empty, PrumerovaniBoduHeaders.Select(s => s.PadLeft(padConst)))}
+             
+         {Prumerovani(measurements, averagedCoordinates, padConst)}
+         """;
+    
+    public string VysledneSouradnice(List<Coordinates> averagedCoordinates, bool onlyAveraged = false)
+    {
+        if (onlyAveraged)
+            averagedCoordinates = averagedCoordinates.Where(c => c.IsAveraged).ToList();
+        
+        const int padConst = 14;
+        
+        return $"""
+                    {string.Join(string.Empty, VysledneSouradniceHeaders.Select(s => s.PadLeft(padConst)))}
+                    
+                    {string.Join(Environment.NewLine, averagedCoordinates.Select(c =>
+                        $"{c.Name,padConst}" +
+                        $"{Math.Round(c.Longitude, _precision).ToString(CultureInfo.InvariantCulture),padConst}" +
+                        $"{Math.Round(c.Latitude, _precision).ToString(CultureInfo.InvariantCulture),padConst}" +
+                        $"{Math.Round(c.Height, _precision).ToString(CultureInfo.InvariantCulture),padConst}" +
+                        $"{c.Code,padConst}"))}
+                """;
     }
 
     public string OnlyAveraged(List<Coordinates> averagedCoordinates)

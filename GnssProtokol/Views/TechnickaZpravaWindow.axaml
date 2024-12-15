@@ -1,0 +1,24 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="200"
+        x:Class="GnssProtokol.Views.TechnickaZpravaWindow"
+        Title="Seznam souřadnic bodů i s průměrem">
+        
+    <StackPanel Margin="20">
+        <TextBlock Text="Výsledný soubor:" Margin="0 0 0 10" />
+        <Grid Margin="0 0 0 10" ColumnDefinitions="*,Auto" >
+            <TextBox x:Name="OutputFilePath" Margin="0,0,20,0" HorizontalAlignment="Stretch" />
+            <Button Grid.Column="1" Content="Vybrat soubor..." Click="OnOutputButtonClick" />
+        </Grid>
+        
+        <StackPanel Orientation="Horizontal" Spacing="10">
+            <Button Name="ProcessButton" Content="Zpracovat" Click="Process" Margin="0" />
+            <Button Name="CloseButton" Content="Zavřít" Click="CloseButton_OnClick" Margin="0" />
+        </StackPanel>
+        
+        <TextBlock Name="Info" Margin="0 20 0 10" />
+    </StackPanel>
+        
+</Window>

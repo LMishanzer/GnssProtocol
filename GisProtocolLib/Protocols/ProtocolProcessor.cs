@@ -1,13 +1,15 @@
 using System.Text;
 using GisProtocolLib.Csv.Models;
 using GisProtocolLib.Protocols.Docx;
+using GisProtocolLib.Protocols.Docx.StandardProtocol;
+using GisProtocolLib.Protocols.Docx.TechnickaZprava;
 using GisProtocolLib.Protocols.Text;
 
 namespace GisProtocolLib.Protocols;
 
-public static class ProtocolProcessor
+public static class ProtocolProcessor<T> where T : class, IDocxDetails
 {
-    public static async Task<UnreadMeasurements> ProcessProtocol(ProtocolData protocolData)
+    public static async Task<UnreadMeasurements> ProcessProtocol(ProtocolData<T> protocolData)
     {
         var isGlobal = protocolData.IsGlobal();
         var precision = protocolData.GetPrecision();
@@ -20,19 +22,38 @@ public static class ProtocolProcessor
         
         var protocolHelper = new TextProtocolMaker(protocolData.FormDetails, precision);
 
-        if (protocolData.OnlyAveragedPoints)
+        switch (protocolData.ProtocolType)
         {
-            var textToWrite = protocolHelper.OnlyAveraged(aggregatedPositions);
-            await File.WriteAllTextAsync(protocolData.OutputFilePath, textToWrite, Encoding.UTF8);
-        }
-        else
-        {
-            var textToWrite = protocolHelper.CreateProtocol(measurements, aggregatedPositions, differences, protocolData.FitForA4);
-            await File.WriteAllTextAsync(protocolData.OutputFilePath, textToWrite, Encoding.UTF8);
-            var docxProtocolHelper = new DocxProtocolMaker(protocolData.DocxDetails);
-            docxProtocolHelper.CreateProtocol(measurements);
-        }
+            case ProtocolType.TechnickaZprava:
+            {
+                if (protocolData is ProtocolData<TechnickaZpravaDetails> protocolDocx)
+                {
+                    var docxProtocolHelper = new TechnickaZpravaMaker(protocolDocx.ProtocolDocxDetails);
+                    docxProtocolHelper.CreateProtocol(measurements, aggregatedPositions);
+                }
 
+                break;
+            }
+            case ProtocolType.OnlyAveragedPoints:
+            {
+                var textToWrite = protocolHelper.OnlyAveraged(aggregatedPositions);
+                await File.WriteAllTextAsync(protocolData.OutputFilePath, textToWrite, Encoding.UTF8);
+                break;
+            }
+            case ProtocolType.RegularProtocol:
+            {
+                if (protocolData is ProtocolData<ProtocolDocxDetails> protocolDocx)
+                {
+                    var textToWrite = protocolHelper.CreateProtocol(measurements, aggregatedPositions, differences, protocolData.FitForA4);
+                    await File.WriteAllTextAsync(protocolData.OutputFilePath, textToWrite, Encoding.UTF8);
+                    var docxProtocolHelper = new StandardProtocolMaker(protocolDocx.ProtocolDocxDetails);
+                    docxProtocolHelper.CreateProtocol(measurements, aggregatedPositions);
+                }
+
+                break;
+            }
+        }
+        
         return csvData.UnreadMeasurements;
     } 
 }

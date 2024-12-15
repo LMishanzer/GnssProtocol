@@ -7,4 +7,5 @@ public class Coordinates
     public decimal Latitude { get; init; }
     public decimal Height { get; init; }
     public string Code { get; init; } = string.Empty;
+    public bool IsAveraged { get; init; }
 }

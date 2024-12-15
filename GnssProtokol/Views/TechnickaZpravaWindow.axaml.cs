@@ -4,33 +4,29 @@ using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using GisProtocolLib.Messages;
 using GisProtocolLib.Protocols;
-using GisProtocolLib.Protocols.Docx.StandardProtocol;
+using GisProtocolLib.Protocols.Docx.TechnickaZprava;
 
 namespace GnssProtokol.Views;
 
-public partial class OnlyAveragedDialogWindow : Window
+public partial class TechnickaZpravaWindow : Window
 {
-    private readonly ProtocolData<ProtocolDocxDetails> _protocolData;
+    private readonly ProtocolData<TechnickaZpravaDetails> _protocolData;
 
-    public OnlyAveragedDialogWindow(ProtocolData<ProtocolDocxDetails> protocolData)
+    public TechnickaZpravaWindow(ProtocolData<TechnickaZpravaDetails> protocolData)
     {
         _protocolData = protocolData;
         InitializeComponent();
     }
     
-    public OnlyAveragedDialogWindow() => throw new Exception();
+    public TechnickaZpravaWindow() => throw new Exception();
 
     public async void OnOutputButtonClick(object sender, RoutedEventArgs e)
     {
         var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
-            FileTypeChoices =
-            [
-                FilePickerFileTypes.TextPlain
-            ],
-            DefaultExtension = ".txt",
+            DefaultExtension = ".docx",
             ShowOverwritePrompt = true,
-            SuggestedFileName = "seznam_souradnic_bodu_s_prumerem.txt"
+            SuggestedFileName = "test.docx"
         });
 
         if (file == null) 
@@ -54,11 +50,9 @@ public partial class OnlyAveragedDialogWindow : Window
         try
         {
             ProcessButton.IsEnabled = false;
-            
-            _protocolData.OutputFilePath = outputFilePath;
+            _protocolData.ProtocolDocxDetails.OutputDocxPathTextBox = outputFilePath;
 
-            var unreadMeasurements = await ProtocolProcessor<ProtocolDocxDetails>.ProcessProtocol(_protocolData);
-
+            var unreadMeasurements = await ProtocolProcessor<TechnickaZpravaDetails>.ProcessProtocol(_protocolData);
             var statusString = StatusMessageHandler.GetStatus(unreadMeasurements.Names);
 
             Info.Text = statusString;

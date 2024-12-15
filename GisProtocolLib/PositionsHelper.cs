@@ -30,7 +30,8 @@ public class PositionsHelper
                 Longitude = coordinates.Sum(v => v.Longitude) / coordinates.Count,
                 Latitude = coordinates.Sum(v => v.Latitude) / coordinates.Count,
                 Height = coordinates.Sum(v => v.Height) / coordinates.Count,
-                Code = $"{coordinates.FirstOrDefault()?.Code} {coordinates.FirstOrDefault()?.Description}".Trim()
+                Code = $"{coordinates.FirstOrDefault()?.Code} {coordinates.FirstOrDefault()?.Description}".Trim(),
+                IsAveraged = coordinates.Count > 1
             };
             resultPositions.Add(newPosition);
             

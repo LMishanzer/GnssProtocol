@@ -1,113 +1,108 @@
+using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using GisProtocolLib.CommonModels;
 
 namespace GisProtocolLib.Protocols.Docx;
 
-public class DocxProtocolMaker
+public abstract class DocxProtocolMaker<T> where T : class, IDocxDetails
 {
-    private readonly DocxDetails _docxDetails;
+    protected readonly T ProtocolDocxDetails;
+    protected abstract string ProtocolFileName { get; }
 
-    public DocxProtocolMaker(DocxDetails docxDetails)
+    protected DocxProtocolMaker(T protocolDocxDetails)
     {
-        _docxDetails = docxDetails;
+        ProtocolDocxDetails = protocolDocxDetails;
     }
 
-    public void CreateProtocol(List<Measurement> measurements)
+    public void CreateProtocol(List<Measurement> measurements, List<Coordinates> aggregatedPositions)
     {
-        var measurementTime = measurements.MaxBy(m => m.TimeEnd)?.TimeEnd;
-        var maxPdop = measurements.MaxBy(m => m.Pdop)?.Pdop;
+        ProtocolDocxDetails.Measurements = measurements;
+        ProtocolDocxDetails.AggregatedPositions = aggregatedPositions;
 
-        var minInterval = GetMinInterval(measurements);
+        var docxDict = GetDictionary();
 
-        var docxDict = GetDictionary(measurements, measurementTime, minInterval, maxPdop);
-
-        const string fileName = "protokol.docx";
-        var outputFileName = _docxDetails.OutputDocxPathTextBox;
+        var fileName = ProtocolFileName;
+        var outputFileName = ProtocolDocxDetails.OutputDocxPathTextBox;
 
         if (string.IsNullOrWhiteSpace(outputFileName))
             throw new Exception("Zadejte výstupní soubory.");
 
         File.Copy(Path.Combine("Resources", fileName), outputFileName, true);
 
-        using var doc = WordprocessingDocument.Open(outputFileName, true);
-        var mainPart = doc.MainDocumentPart;
+        using var document = WordprocessingDocument.Open(outputFileName, true);
+
+        ReplaceFields(docxDict, document);
+    }
+
+    protected virtual void ReplaceFields(Dictionary<string, string> docxDict, WordprocessingDocument document)
+    {
+        var mainPart = document.MainDocumentPart;
         var body = mainPart?.Document.Body;
 
-        if (body == null)
+        if (mainPart == null || body == null)
             return;
 
-        ReplaceFields(docxDict, body);
-    }
+        var descendants = body.Descendants<DocumentFormat.OpenXml.Wordprocessing.Text>().ToList();
 
-    private static TimeSpan GetMinInterval(List<Measurement> measurements)
-    {
-        // select the minimal observation time
-        var minIntervalTicks = measurements.Select(measurement => Math.Abs(measurement.TimeEnd.Ticks - measurement.TimeStart.Ticks)).Prepend(long.MaxValue).Min();
-
-        var minInterval = TimeSpan.FromTicks(minIntervalTicks);
-        var oneSecond = TimeSpan.FromSeconds(1);
-        
-        if (minInterval < oneSecond)
-            minInterval = oneSecond;
-        
-        return minInterval;
-    }
-
-    private static void ReplaceFields(Dictionary<string, string> docxDict, Body body)
-    {
         foreach (var (key, value) in docxDict)
         {
-            foreach (var text in body.Descendants<DocumentFormat.OpenXml.Wordprocessing.Text>())
+            foreach (var text in descendants)
             {
-                if (!text.Text.Contains(key))
-                    continue;
-                
                 var lines = value.Split(["\r\n", "\r", "\n"], StringSplitOptions.None);
-                text.Text = "";
-
-                for (var i = 0; i < lines.Length; i++)
+                
+                if (text.Text.Equals(key))
                 {
-                    text.InsertBeforeSelf(new DocumentFormat.OpenXml.Wordprocessing.Text(lines[i]));
+                    text.Text = "";
 
-                    if (i < lines.Length - 1)
-                        text.InsertBeforeSelf(new Break());
+                    for (var i = 0; i < lines.Length; i++)
+                    {
+                        text.InsertBeforeSelf(new DocumentFormat.OpenXml.Wordprocessing.Text(lines[i])
+                        {
+                            Space = SpaceProcessingModeValues.Preserve,
+                        });
+
+                        if (i < lines.Length - 1)
+                            text.InsertBeforeSelf(new Break());
+                    }
+
+                    text.Remove();
                 }
+                else if (text.Text.Contains(key))
+                {
+                    text.Text = text.Text.Replace(key, lines.First());
+                    OpenXmlLeafElement currentText = text;
+                
+                    if (lines.Length > 1)
+                    {
+                        var breakElement = new Break();
+                        currentText.InsertAfterSelf(breakElement);
+                        currentText = breakElement;
+                    }
 
-                text.Remove();
+                    for (var i = 1; i < lines.Length; i++)
+                    {
+                        var newText = new DocumentFormat.OpenXml.Wordprocessing.Text(lines[i])
+                        {
+                            Space = SpaceProcessingModeValues.Preserve,
+                        };
+                        
+                        currentText.InsertAfterSelf(newText);
+                        currentText = newText;
+
+                        if (i < lines.Length - 1)
+                        {
+                            var breakElement = new Break();
+                            currentText.InsertAfterSelf(breakElement);
+                            currentText = breakElement;
+                        }
+                    }                    
+                } 
             }
         }
+
+        mainPart.Document.Save();
     }
 
-    private Dictionary<string, string> GetDictionary(List<Measurement> measurements, DateTime? measurementTime, TimeSpan minInterval, decimal? maxPdop) =>
-        new()
-        {
-            { "{lokalita}", _docxDetails.Lokalita ?? string.Empty },
-            { "{katastralniUzemi}", _docxDetails.UzemiTextBox ?? string.Empty },
-            { "{okres}", _docxDetails.Okres ?? string.Empty },
-            { "{zhotovitel}", _docxDetails.FormDetails.Zhotovitel ?? string.Empty },
-            { "{vypracoval}", _docxDetails.FormDetails.Zpracoval ?? string.Empty },
-            { "{dne}", DateTime.Now.ToString("dd.MM.yyyy") },
-            { "{prijimace}", _docxDetails.FormDetails.Prijemace ?? string.Empty },
-            { "{vyrobce}", _docxDetails.FormDetails.Vyrobce ?? string.Empty },
-            { "{typ}", _docxDetails.FormDetails.Typ ?? string.Empty },
-            { "{cislo}", _docxDetails.FormDetails.Cislo ?? string.Empty },
-            { "{anteny}", _docxDetails.FormDetails.Anteny ?? string.Empty },
-            { "{zamereniDatum}", measurementTime?.ToString("dd.MM.yyyy") ?? string.Empty },
-            { "{metoda}", measurements.FirstOrDefault()?.Metoda ?? string.Empty },
-            { "{sit}", _docxDetails.FormDetails.PouzitaStanice ?? string.Empty },
-            { "{pristupovyBod}", _docxDetails.FormDetails.PristupovyBod ?? string.Empty },
-            { "{interval}", _docxDetails.FormDetails.IntervalZaznamu ?? string.Empty },
-            { "{elevacniMaska}", _docxDetails.FormDetails.ElevacniMaska ?? string.Empty },
-            { "{vyskaAntenyVztazena}", _docxDetails.FormDetails.VyskaAnteny ?? string.Empty },
-            { "{minimalniDoba}", $"{minInterval.Seconds}s" },
-            { "{maxPdop}", maxPdop?.ToString() ?? string.Empty },
-            { "{nejmensiPocet}", _docxDetails.FormDetails.PocetZameneniBodu ?? string.Empty },
-            { "{zpracovatelskyProgram}", _docxDetails.FormDetails.ZpracovatelskyProgram ?? string.Empty },
-            { "{souradnicePripojeny}", _docxDetails.FormDetails.SouradniceNepripojeny ?? string.Empty },
-            { "{kontrolaPripojeni}", _docxDetails.FormDetails.KontrolaPripojeni ?? string.Empty },
-            { "{transformacniPristup}", _docxDetails.FormDetails.TransformacniPostup ?? string.Empty },
-            { "{transformaceZpracovatelskyProgram}", _docxDetails.FormDetails.TransformaceZpracovatelskyProgram ?? string.Empty },
-            { "{poznamky}", _docxDetails.Poznamky ?? string.Empty }
-        };
+    protected abstract Dictionary<string, string> GetDictionary();
 }

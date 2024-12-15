@@ -85,6 +85,8 @@
             <StackPanel Orientation="Horizontal" Spacing="10">
                 <Button Name="ProcessButton" Content="Vyhotovení protokolu GNSS" Click="Process" Margin="0" />
                 
+                <Button Name="TechnickaZpravaButton" Content="Technická zpráva" Click="Process" Margin="0" />
+                
                 <Button Name="OpenDetails" Content="Nastavení protokolu" Click="OpenDetailsClick" Margin="0" />
             </StackPanel>
             

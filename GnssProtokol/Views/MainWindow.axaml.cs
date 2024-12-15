@@ -11,6 +11,8 @@ using GisProtocolLib.CommonModels;
 using GisProtocolLib.Messages;
 using GisProtocolLib.Protocols;
 using GisProtocolLib.Protocols.Docx;
+using GisProtocolLib.Protocols.Docx.StandardProtocol;
+using GisProtocolLib.Protocols.Docx.TechnickaZprava;
 using GisProtocolLib.State;
 using ComboBoxItem = Avalonia.Controls.ComboBoxItem;
 
@@ -119,33 +121,8 @@ public partial class MainWindow : Window
         try
         {
             ProcessButton.IsEnabled = false;
-
-            var typTechnologie = (TypTechnologie.SelectedItem as ComboBoxItem)?.Content as string ?? string.Empty;
-            var delimiterValue = (Delimiter.SelectedItem as ComboBoxItem)?.Content as string;
-            var fitForA4 = (FitForA4.SelectedItem as ComboBoxItem)?.Tag?.ToString() == "Fit";
-            var outputFile = OutputPathTextBox.Text ?? string.Empty;
-
-            var protocolData = new ProtocolData
-            {
-                FormDetails = _formDetails,
-                CsvDelimiter = delimiterValue ?? ",",
-                DocxDetails = new DocxDetails
-                {
-                    Lokalita = Lokalita.Text,
-                    Okres = Okres.Text,
-                    OutputDocxPathTextBox = OutputDocxPathTextBox.Text,
-                    Poznamky = Poznamky.Text,
-                    UzemiTextBox = UzemiTextBox.Text,
-                    FormDetails = _formDetails
-                },
-                TechnologyType = typTechnologie,
-                SourceFilePath = sourceFilePath,
-                OutputFilePath = outputFile,
-                FitForA4 = fitForA4,
-                OnlyAveragedPoints = false
-            };
-
-            await ProcessButtonClick(protocolData, buttonSender);
+            
+            await ProcessButtonClick(sourceFilePath, buttonSender);
         }
         catch (Exception ex)
         {
@@ -157,23 +134,68 @@ public partial class MainWindow : Window
         }
     }
 
-    private async Task ProcessButtonClick(ProtocolData protocolData, Button buttonSender)
+    private async Task ProcessButtonClick(string sourceFilePath, Button buttonSender)
     {
+        var protocolData = CreateProtocolData(new ProtocolDocxDetails
+        {
+            Lokalita = Lokalita.Text,
+            Okres = Okres.Text,
+            OutputDocxPathTextBox = OutputDocxPathTextBox.Text,
+            Poznamky = Poznamky.Text,
+            UzemiTextBox = UzemiTextBox.Text,
+            FormDetails = _formDetails
+        }, sourceFilePath);
+        
         switch (buttonSender.Name)
         {
             case "ProcessButton":
-                var unreadMeasurements = await ProtocolProcessor.ProcessProtocol(protocolData);
+                protocolData.ProtocolType = ProtocolType.RegularProtocol;
+                var unreadMeasurements = await ProtocolProcessor<ProtocolDocxDetails>.ProcessProtocol(protocolData);
                 Info.Text = StatusMessageHandler.GetStatus(unreadMeasurements.Names);
                 break;
             case "OnlyAveragedButton":
+                protocolData.ProtocolType = ProtocolType.OnlyAveragedPoints;
                 var averagedDialog = new OnlyAveragedDialogWindow(protocolData);
                 await averagedDialog.ShowDialog(this);
                 break;
             case "MapPointsButton":
+                protocolData.ProtocolType = ProtocolType.MapPoints;
                 var mapPointsDialog = new MapPointsDialogWindow(protocolData);
                 await mapPointsDialog.ShowDialog(this);
                 break;
+            case "TechnickaZpravaButton":
+                var technickaZpravaData = CreateProtocolData(new TechnickaZpravaDetails
+                {
+                    Okres = Okres.Text,
+                    OutputDocxPathTextBox = OutputDocxPathTextBox.Text,
+                    UzemiTextBox = UzemiTextBox.Text,
+                    FormDetails = _formDetails
+                }, sourceFilePath);
+                technickaZpravaData.ProtocolType = ProtocolType.TechnickaZprava;
+                var technickaZpravaDialog = new TechnickaZpravaWindow(technickaZpravaData);
+                await technickaZpravaDialog.ShowDialog(this);
+                break;
         }
+    }
+
+    private ProtocolData<T> CreateProtocolData<T>(T details, string sourceFilePath) where T : class, IDocxDetails
+    {
+        var typTechnologie = (TypTechnologie.SelectedItem as ComboBoxItem)?.Content as string ?? string.Empty;
+        var delimiterValue = (Delimiter.SelectedItem as ComboBoxItem)?.Content as string;
+        var fitForA4 = (FitForA4.SelectedItem as ComboBoxItem)?.Tag?.ToString() == "Fit";
+        var outputFile = OutputPathTextBox.Text ?? string.Empty;
+        
+        return new ProtocolData<T>
+        {
+            ProtocolDocxDetails = details,
+            FormDetails = _formDetails,
+            CsvDelimiter = delimiterValue ?? ",",
+            TechnologyType = typTechnologie,
+            SourceFilePath = sourceFilePath,
+            OutputFilePath = outputFile,
+            FitForA4 = fitForA4,
+            ProtocolType = ProtocolType.RegularProtocol
+        };
     }
 
     private async void SaveState()

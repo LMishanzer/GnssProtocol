@@ -1,22 +1,22 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Net;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using GisProtocolLib.CommonModels;
 using GisProtocolLib.Messages;
 using GisProtocolLib.Protocols;
+using GisProtocolLib.Protocols.Docx.StandardProtocol;
 using GisProtocolLib.Protocols.Text;
 
 namespace GnssProtokol.Views;
 
 public partial class MapPointsDialogWindow : Window
 {
-    private readonly ProtocolData _protocolData;
+    private readonly ProtocolData<ProtocolDocxDetails> _protocolData;
 
-    public MapPointsDialogWindow(ProtocolData protocolData)
+    public MapPointsDialogWindow(ProtocolData<ProtocolDocxDetails> protocolData)
     {
         _protocolData = protocolData;
         
@@ -64,7 +64,6 @@ public partial class MapPointsDialogWindow : Window
             ProcessButton.IsEnabled = false;
 
             _protocolData.OutputFilePath = outputFilePath;
-            _protocolData.OnlyAveragedPoints = true;
 
             var isGlobal = _protocolData.IsGlobal();
             var csvReader = _protocolData.GetCsvReader();
